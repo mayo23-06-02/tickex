@@ -11,9 +11,10 @@ interface TicketDesignerProps {
     updateData: (updates: any) => void;
     updateDesign: (updates: any) => void;
     onSave: () => void;
+    onCancel: () => void;
 }
 
-export function TicketDesigner({ data, design, updateData, updateDesign, onSave }: TicketDesignerProps) {
+export function TicketDesigner({ data, design, updateData, updateDesign, onSave, onCancel }: TicketDesignerProps) {
     const [currentTab, setCurrentTab] = useState("Basic Info");
     const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
 
@@ -56,6 +57,7 @@ export function TicketDesigner({ data, design, updateData, updateDesign, onSave 
                 currentTab={currentTab}
                 setCurrentTab={setCurrentTab}
                 onSave={onSave}
+                onCancel={onCancel}
             />
         </div>
     );

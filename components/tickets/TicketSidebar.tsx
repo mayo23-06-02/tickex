@@ -12,6 +12,14 @@ export interface TicketType {
     total: number;
     status: "Active" | "Inactive";
     color?: string;
+    salesStart?: string;
+    salesEnd?: string;
+    description?: string;
+    dynamicPricing?: boolean;
+    waitlist?: boolean;
+    venue?: string;
+    eventDate?: string;
+    eventTime?: string;
 }
 
 interface TicketSidebarProps {

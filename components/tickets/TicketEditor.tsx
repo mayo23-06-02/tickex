@@ -11,6 +11,7 @@ interface TicketEditorProps {
     currentTab: string;
     setCurrentTab: (tab: string) => void;
     onSave: () => void;
+    onCancel: () => void;
 }
 
 export function TicketEditor({
@@ -20,7 +21,8 @@ export function TicketEditor({
     updateDesign,
     currentTab,
     setCurrentTab,
-    onSave
+    onSave,
+    onCancel
 }: TicketEditorProps) {
 
     const [isSaving, setIsSaving] = useState(false);
@@ -43,6 +45,15 @@ export function TicketEditor({
         const perks = [...(data.perks || [])];
         perks.splice(index, 1);
         updateData({ perks });
+    };
+
+    const togglePerk = (perk: string) => {
+        const currentPerks = data.perks || [];
+        if (currentPerks.includes(perk)) {
+            updateData({ perks: currentPerks.filter((p: string) => p !== perk) });
+        } else {
+            updateData({ perks: [...currentPerks, perk] });
+        }
     };
 
     const handleSave = async () => {
@@ -95,7 +106,7 @@ export function TicketEditor({
                                 <input
                                     type="number"
                                     value={data.price}
-                                    onChange={(e) => updateData({ price: parseInt(e.target.value) || 0 })}
+                                    onChange={(e) => updateData({ price: parseInt(e.target.value) })}
                                     className="w-full px-4 py-2.5 rounded-lg border border-[#e2e8f0] bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954] transition-all"
                                 />
                             </div>
@@ -104,7 +115,7 @@ export function TicketEditor({
                                 <input
                                     type="number"
                                     value={data.total}
-                                    onChange={(e) => updateData({ total: parseInt(e.target.value) || 0 })}
+                                    onChange={(e) => updateData({ total: parseInt(e.target.value) })}
                                     className="w-full px-4 py-2.5 rounded-lg border border-[#e2e8f0] bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954] transition-all"
                                 />
                             </div>
@@ -112,11 +123,21 @@ export function TicketEditor({
 
                         <div className="flex gap-8">
                             <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" className="rounded text-[#1DB954] focus:ring-[#1DB954]" />
+                                <input
+                                    type="checkbox"
+                                    checked={data.dynamicPricing || false}
+                                    onChange={(e) => updateData({ dynamicPricing: e.target.checked })}
+                                    className="rounded text-[#1DB954] focus:ring-[#1DB954]"
+                                />
                                 <span className="text-sm text-[#64748b]">Enable dynamic pricing</span>
                             </label>
                             <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" className="rounded text-[#1DB954] focus:ring-[#1DB954]" />
+                                <input
+                                    type="checkbox"
+                                    checked={data.waitlist || false}
+                                    onChange={(e) => updateData({ waitlist: e.target.checked })}
+                                    className="rounded text-[#1DB954] focus:ring-[#1DB954]"
+                                />
                                 <span className="text-sm text-[#64748b]">Enable waitlist</span>
                             </label>
                         </div>
@@ -125,6 +146,8 @@ export function TicketEditor({
                             <label className="text-sm font-medium text-[#0f172a]">Description</label>
                             <textarea
                                 rows={3}
+                                value={data.description || ""}
+                                onChange={(e) => updateData({ description: e.target.value })}
                                 className="w-full px-4 py-2.5 rounded-lg border border-[#e2e8f0] bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954] transition-all resize-none"
                                 placeholder="Describe what's included..."
                             />
@@ -136,6 +159,8 @@ export function TicketEditor({
                                 <div className="relative">
                                     <input
                                         type="datetime-local"
+                                        value={data.salesStart || ""}
+                                        onChange={(e) => updateData({ salesStart: e.target.value })}
                                         className="w-full px-4 py-2.5 rounded-lg border border-[#e2e8f0] bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954] transition-all"
                                     />
                                     <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8] pointer-events-none" />
@@ -146,6 +171,8 @@ export function TicketEditor({
                                 <div className="relative">
                                     <input
                                         type="datetime-local"
+                                        value={data.salesEnd || ""}
+                                        onChange={(e) => updateData({ salesEnd: e.target.value })}
                                         className="w-full px-4 py-2.5 rounded-lg border border-[#e2e8f0] bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954] transition-all"
                                     />
                                     <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8] pointer-events-none" />
@@ -193,8 +220,14 @@ export function TicketEditor({
                             <h3 className="font-medium text-[#0f172a] mb-3">VIP Package Builder</h3>
                             <div className="grid grid-cols-2 gap-3">
                                 {["Fast Lane Access", "Free Drink", "Meet & Greet", "Merch Bundle", "Photo Booth", "Lounge Access"].map((item) => (
-                                    <label key={item} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-[#e2e8f0] cursor-pointer hover:border-[#1DB954] transition-colors">
-                                        <input type="checkbox" className="rounded text-[#1DB954] focus:ring-[#1DB954]" />
+                                    <label key={item} className={`flex items-center gap-3 p-3 bg-slate-50 rounded-lg border cursor-pointer hover:border-[#1DB954] transition-colors ${(data.perks || []).includes(item) ? 'border-[#1DB954] bg-green-50/50' : 'border-[#e2e8f0]'
+                                        }`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={(data.perks || []).includes(item)}
+                                            onChange={() => togglePerk(item)}
+                                            className="rounded text-[#1DB954] focus:ring-[#1DB954]"
+                                        />
                                         <span className="text-sm text-[#0f172a]">{item}</span>
                                     </label>
                                 ))}
@@ -332,7 +365,10 @@ export function TicketEditor({
                     <button className="px-6 py-2.5 bg-white border border-[#e2e8f0] hover:bg-slate-50 text-[#0f172a] font-medium rounded-lg transition-colors">
                         Save Draft
                     </button>
-                    <button className="px-6 py-2.5 bg-white border border-[#e2e8f0] hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-[#64748b] font-medium rounded-lg transition-colors">
+                    <button
+                        onClick={onCancel}
+                        className="px-6 py-2.5 bg-white border border-[#e2e8f0] hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-[#64748b] font-medium rounded-lg transition-colors"
+                    >
                         Cancel
                     </button>
                 </div>

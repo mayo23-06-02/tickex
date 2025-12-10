@@ -8,9 +8,51 @@ import { TicketDistribution } from "@/components/tickets/TicketDistribution";
 
 // Mock Data
 const initialTickets: TicketType[] = [
-    { id: "1", name: "VIP Access", price: 500, sold: 120, total: 200, status: "Active", color: "#1DB954" },
-    { id: "2", name: "General Admission", price: 150, sold: 722, total: 1000, status: "Active", color: "#0f172a" },
-    { id: "3", name: "Early Bird", price: 100, sold: 100, total: 100, status: "Inactive", color: "#f59e0b" },
+    {
+        id: "1",
+        name: "VIP Access",
+        price: 500,
+        sold: 120,
+        total: 200,
+        status: "Active",
+        color: "#1DB954",
+        salesStart: "2025-03-01T09:00",
+        salesEnd: "2025-03-31T18:00",
+        description: "Full access to all VIP areas giving you the best experience.",
+        dynamicPricing: true,
+        waitlist: false,
+        venue: "Central Stadium",
+        eventDate: "2025-03-15",
+        eventTime: "19:00"
+    },
+    {
+        id: "2",
+        name: "General Admission",
+        price: 150,
+        sold: 722,
+        total: 1000,
+        status: "Active",
+        color: "#0f172a",
+        salesStart: "2025-03-05T09:00",
+        salesEnd: "2025-04-10T18:00",
+        description: "Standard entry to the festival grounds.",
+        dynamicPricing: false,
+        waitlist: true
+    },
+    {
+        id: "3",
+        name: "Early Bird",
+        price: 100,
+        sold: 100,
+        total: 100,
+        status: "Inactive",
+        color: "#f59e0b",
+        salesStart: "2025-02-01T09:00",
+        salesEnd: "2025-02-28T18:00",
+        description: "Discounted tickets for early buyers.",
+        dynamicPricing: false,
+        waitlist: false
+    },
 ];
 
 export default function TicketsPage() {
@@ -25,7 +67,15 @@ export default function TicketsPage() {
         price: 500,
         total: 200,
         perks: ["Backstage access", "Premium seating", "Meet & greet"],
-        status: "Active"
+        status: "Active",
+        salesStart: "2025-03-01T09:00",
+        salesEnd: "2025-03-31T18:00",
+        description: "Full access to all VIP areas giving you the best experience.",
+        dynamicPricing: true,
+        waitlist: false,
+        venue: "Central Stadium",
+        eventDate: "2025-03-15",
+        eventTime: "19:00"
     });
 
     const [ticketDesign, setTicketDesign] = useState({
@@ -41,7 +91,15 @@ export default function TicketsPage() {
                 price: ticket.price,
                 total: ticket.total,
                 status: ticket.status,
-                perks: ticket.id === "1" ? ["Backstage access", "Premium seating"] : []
+                perks: ticket.id === "1" ? ["Backstage access", "Premium seating"] : [],
+                salesStart: ticket.salesStart || "",
+                salesEnd: ticket.salesEnd || "",
+                description: ticket.description || "",
+                dynamicPricing: ticket.dynamicPricing || false,
+                waitlist: ticket.waitlist || false,
+                venue: ticket.venue || "Central Stadium",
+                eventDate: ticket.eventDate || "2025-03-15",
+                eventTime: ticket.eventTime || "19:00"
             });
             setTicketDesign({
                 bgColor: ticket.color || "#1DB954"

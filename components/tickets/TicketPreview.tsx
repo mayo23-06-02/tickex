@@ -31,15 +31,15 @@ export function TicketPreview({ data, design }: TicketPreviewProps) {
                     <div className="grid grid-cols-2 gap-8">
                         <div>
                             <div className="text-[10px] uppercase font-bold opacity-60 mb-1">Date</div>
-                            <div className="font-semibold">March 15, 2025</div>
+                            <div className="font-semibold">{data.eventDate || "March 15, 2025"}</div>
                         </div>
                         <div>
                             <div className="text-[10px] uppercase font-bold opacity-60 mb-1">Time</div>
-                            <div className="font-semibold">7:00 PM</div>
+                            <div className="font-semibold">{data.eventTime || "7:00 PM"}</div>
                         </div>
                         <div>
                             <div className="text-[10px] uppercase font-bold opacity-60 mb-1">Venue</div>
-                            <div className="font-semibold truncate">Central Stadium</div>
+                            <div className="font-semibold truncate">{data.venue || "Central Stadium"}</div>
                         </div>
                         <div>
                             <div className="text-[10px] uppercase font-bold opacity-60 mb-1">Price</div>
