@@ -14,9 +14,8 @@ export function CustomerDetails({ customer }: CustomerDetailsProps) {
 
     const tabs = [
         { id: "Purchase History", icon: Receipt },
-        { id: "Engagement", icon: MessageSquare }, // Using MessageSquare as placeholder for Eye/Engagement
-        { id: "Preferences", icon: HelpCircle }, // Placeholder
-        { id: "Loyalty & Referrals", icon: Plus }, // Placeholder
+        { id: "Engagement", icon: MessageSquare },
+        { id: "Preferences", icon: HelpCircle },
     ];
 
     return (

@@ -2,25 +2,51 @@
 
 import { useState } from "react";
 import { Upload, ChevronDown, Check, Plus, HelpCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export function TicketDistribution() {
     const [assignmentEmail, setAssignmentEmail] = useState("");
     const [isAssigning, setIsAssigning] = useState(false);
-    const [assignmentParams, setAssignmentParams] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
     const handleAssign = () => {
         if (!assignmentEmail) return;
         setIsAssigning(true);
         setTimeout(() => {
             setIsAssigning(false);
-            setAssignmentParams({ message: `Ticket assigned to ${assignmentEmail}`, type: 'success' });
+            toast.success(`Ticket assigned successfully to ${assignmentEmail}`);
             setAssignmentEmail("");
-            setTimeout(() => setAssignmentParams(null), 3000);
-        }, 1000);
+        }, 1500);
     };
 
-    const handleAction = (action: string) => {
-        alert(`${action} initiated!`);
+    const handleDownloadTemplate = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const csvContent = "data:text/csv;charset=utf-8,Email,Name,TicketType,Quantity\nexample@email.com,John Doe,VIP,2";
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "ticket_assignment_template.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.info("CSV template downloaded");
+    };
+
+    const handleCreateDiscountCode = () => {
+        const code = `PROMO-${Math.floor(Math.random() * 10000)}`;
+        toast.promise(
+            new Promise((resolve) => setTimeout(resolve, 1000)),
+            {
+                loading: 'Creating discount code...',
+                success: `Discount code ${code} created!`,
+                error: 'Failed to create discount code'
+            }
+        );
+    };
+
+    const handleBatchAction = (action: string) => {
+        toast.message(`Processing: ${action}`, {
+            description: "Started background job. You will be notified upon completion.",
+        });
     };
 
     return (
@@ -47,23 +73,24 @@ export function TicketDistribution() {
                     >
                         {isAssigning ? <Loader2 className="w-4 h-4 animate-spin" /> : "Assign Ticket"}
                     </button>
-                    {assignmentParams && (
-                        <div className="text-xs text-[#1DB954] text-center font-medium animate-in fade-in slide-in-from-top-2">
-                            {assignmentParams.message}
-                        </div>
-                    )}
                 </div>
             </div>
 
             {/* Bulk CSV */}
             <div
-                onClick={() => handleAction("CSV Template Download")}
                 className="p-6 border-2 border-dashed border-[#e2e8f0] rounded-xl text-center bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer group"
             >
-                <Upload className="w-8 h-8 text-[#94a3b8] group-hover:text-[#1DB954] mx-auto mb-2 transition-colors" />
-                <div className="text-sm font-medium text-[#0f172a]">Bulk Assignment via CSV</div>
-                <div className="text-xs text-[#64748b] mt-1">Upload CSV file (max 1000 records)</div>
-                <button className="text-xs text-[#1DB954] font-medium mt-3 hover:underline">Download CSV Template</button>
+                <div onClick={() => toast("Upload functionality would open file picker here.")}>
+                    <Upload className="w-8 h-8 text-[#94a3b8] group-hover:text-[#1DB954] mx-auto mb-2 transition-colors" />
+                    <div className="text-sm font-medium text-[#0f172a]">Bulk Assignment via CSV</div>
+                    <div className="text-xs text-[#64748b] mt-1">Upload CSV file (max 1000 records)</div>
+                </div>
+                <button
+                    onClick={handleDownloadTemplate}
+                    className="text-xs text-[#1DB954] font-medium mt-3 hover:underline"
+                >
+                    Download CSV Template
+                </button>
             </div>
 
             {/* Discount Codes */}
@@ -71,7 +98,7 @@ export function TicketDistribution() {
                 <div className="flex justify-between items-center mb-3">
                     <h3 className="font-semibold text-[#0f172a] text-sm">Discount Codes</h3>
                     <button
-                        onClick={() => handleAction("Create Discount Code")}
+                        onClick={handleCreateDiscountCode}
                         className="text-xs text-[#1DB954] font-medium flex items-center gap-1 hover:underline"
                     >
                         <Plus className="w-3 h-3" /> Create
@@ -118,7 +145,7 @@ export function TicketDistribution() {
                     {["Generate All Tickets (PDF)", "Send to Print Partner", "Sync with Mobile App", "Set Up Auto-Refunds"].map((action) => (
                         <button
                             key={action}
-                            onClick={() => handleAction(action)}
+                            onClick={() => handleBatchAction(action)}
                             className="w-full text-left px-3 py-2 text-sm text-[#64748b] hover:text-[#0f172a] hover:bg-slate-50 rounded-lg transition-colors flex items-center justify-between group"
                         >
                             {action}

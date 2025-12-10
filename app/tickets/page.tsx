@@ -5,6 +5,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { TicketSidebar, TicketType } from "@/components/tickets/TicketSidebar";
 import { TicketDesigner } from "@/components/tickets/TicketDesigner";
 import { TicketDistribution } from "@/components/tickets/TicketDistribution";
+import { toast } from "sonner";
 
 // Mock Data
 const initialTickets: TicketType[] = [
@@ -145,12 +146,20 @@ export default function TicketsPage() {
                     price: ticketData.price,
                     total: ticketData.total,
                     status: ticketData.status || t.status,
-                    color: ticketDesign.bgColor
+                    color: ticketDesign.bgColor,
+                    salesStart: ticketData.salesStart,
+                    salesEnd: ticketData.salesEnd,
+                    description: ticketData.description,
+                    dynamicPricing: ticketData.dynamicPricing,
+                    waitlist: ticketData.waitlist,
+                    venue: ticketData.venue,
+                    eventDate: ticketData.eventDate,
+                    eventTime: ticketData.eventTime
                 };
             }
             return t;
         }));
-        // Optionally show toast or feedback here
+        toast.success("Ticket updated successfully");
     };
 
     const handleCancelTicket = () => {
@@ -161,11 +170,20 @@ export default function TicketsPage() {
                 price: ticket.price,
                 total: ticket.total,
                 status: ticket.status,
-                perks: ticket.id === "1" ? ["Backstage access", "Premium seating"] : []
+                perks: ticket.id === "1" ? ["Backstage access", "Premium seating"] : [],
+                salesStart: ticket.salesStart || "",
+                salesEnd: ticket.salesEnd || "",
+                description: ticket.description || "",
+                dynamicPricing: ticket.dynamicPricing || false,
+                waitlist: ticket.waitlist || false,
+                venue: ticket.venue || "Central Stadium",
+                eventDate: ticket.eventDate || "2025-03-15",
+                eventTime: ticket.eventTime || "19:00"
             });
             setTicketDesign({
                 bgColor: ticket.color || "#1DB954"
             });
+            toast.info("Changes reverted");
         }
     };
 

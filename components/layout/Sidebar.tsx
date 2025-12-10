@@ -13,7 +13,9 @@ import {
     MessageSquare,
     Image as ImageIcon,
     Settings,
-    HelpCircle
+    HelpCircle,
+    Palette,
+    Clock
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -25,6 +27,8 @@ const menuItems = [
     { icon: Users, label: "Customers", href: "/customers" },
     { icon: TrendingUp, label: "Promotions", href: "/promotions" },
     { icon: CalendarDays, label: "Events", href: "/events" },
+    { icon: Clock, label: "Event Timeline", href: "/event-timeline" },
+    { icon: Palette, label: "Branding & Design", href: "/branding" },
     { icon: MessageSquare, label: "Communications", href: "/communications" },
     { icon: ImageIcon, label: "Gallery", href: "/gallery" },
 ];
