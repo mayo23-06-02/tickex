@@ -12,13 +12,13 @@ export interface Booking {
         initials: string;
         bgColor: string;
     };
-    type: "VIP" | "General";
+    type: string;
     qty: number;
     date: string;
     time: string;
     amount: number;
     payment: string;
-    status: "Confirmed" | "Pending" | "Cancelled";
+    status: string;
     checkedIn?: boolean;
 }
 
