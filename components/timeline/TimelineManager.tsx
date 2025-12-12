@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, Reorder } from "framer-motion";
 import {
     Check,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AddMilestoneModal } from "./AddMilestoneModal";
+import { getMilestones, createMilestone, updateMilestone, deleteMilestone } from "@/app/actions/timeline";
 
 interface TimelineItem {
     id: string;
@@ -32,88 +33,70 @@ interface TimelineItem {
     dependencies?: string[];
 }
 
-const initialItems: TimelineItem[] = [
-    {
-        id: "1",
-        status: "completed",
-        title: "Planning & Strategy",
-        description: "Define event goals, budget, and initial planning",
-        startDate: "2024-11-01",
-        endDate: "2024-12-15",
-        progress: 100,
-        assignees: ["John Doe", "Jane Smith"],
-        priority: "high",
-    },
-    {
-        id: "2",
-        status: "completed",
-        title: "Marketing Launch",
-        description: "Launch marketing campaigns and social media presence",
-        startDate: "2024-12-10",
-        endDate: "2025-01-10",
-        progress: 100,
-        assignees: ["Sarah Johnson"],
-        priority: "high",
-        dependencies: ["1"],
-    },
-    {
-        id: "3",
-        status: "active",
-        title: "Ticket Sales",
-        description: "Open ticket sales and manage inventory",
-        startDate: "2025-01-15",
-        endDate: "2025-03-15",
-        progress: 65,
-        assignees: ["Mike Chen", "Emily Davis"],
-        priority: "high",
-        dependencies: ["2"],
-    },
-    {
-        id: "4",
-        status: "pending",
-        title: "Venue Setup",
-        description: "Coordinate venue logistics, stage setup, and equipment",
-        startDate: "2025-03-01",
-        endDate: "2025-03-14",
-        progress: 0,
-        assignees: ["Tom Wilson"],
-        priority: "medium",
-        dependencies: ["3"],
-    },
-    {
-        id: "5",
-        status: "pending",
-        title: "Event Day",
-        description: "Execute event and manage day-of operations",
-        startDate: "2025-03-15",
-        endDate: "2025-03-15",
-        progress: 0,
-        assignees: ["All Team"],
-        priority: "high",
-        dependencies: ["4"],
-    },
-];
-
 interface TimelineManagerProps {
     isModalOpen?: boolean;
     setIsModalOpen?: (open: boolean) => void;
 }
 
 export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen: externalSetModalOpen }: TimelineManagerProps = {}) {
-    const [items, setItems] = useState<TimelineItem[]>(initialItems);
+    const [items, setItems] = useState<TimelineItem[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
     const [internalModalOpen, setInternalModalOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Use external modal state if provided, otherwise use internal state
     const isModalOpen = externalModalOpen !== undefined ? externalModalOpen : internalModalOpen;
     const setIsModalOpen = externalSetModalOpen || setInternalModalOpen;
 
-    const handleAddMilestone = (milestone: TimelineItem) => {
-        setItems((prev) => [...prev, milestone]);
+    useEffect(() => {
+        loadItems();
+    }, []);
+
+    async function loadItems() {
+        try {
+            const data = await getMilestones();
+            const formatted = data.map((m: any) => ({
+                id: m._id,
+                title: m.title,
+                description: m.description,
+                status: m.status,
+                startDate: m.startDate || m.dueDate, // Fallback
+                endDate: m.dueDate,
+                progress: m.status === 'completed' ? 100 : (m.status === 'active' ? 50 : 0),
+                assignees: [], // Placeholder
+                priority: m.priority || 'medium',
+                dependencies: []
+            }));
+            setItems(formatted);
+        } catch (error) {
+            console.error("Failed to load milestones", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    const handleAddMilestone = async (milestoneData: any) => {
+        try {
+            await createMilestone({
+                title: milestoneData.title,
+                description: milestoneData.description,
+                dueDate: milestoneData.endDate,
+                startDate: milestoneData.startDate,
+                priority: milestoneData.priority,
+                status: "pending"
+            });
+            await loadItems();
+            setIsModalOpen(false);
+            toast.success("Milestone created");
+        } catch (error) {
+            toast.error("Failed to create milestone");
+        }
     };
 
-    const handleStatusChange = (id: string, newStatus: TimelineItem["status"]) => {
+    const handleStatusChange = async (id: string, newStatus: TimelineItem["status"]) => {
+        const originalItems = [...items];
+        // Optimistic update
         setItems((prev) =>
             prev.map((item) =>
                 item.id === id
@@ -125,10 +108,18 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
                     : item
             )
         );
-        toast.success(`Milestone status updated to ${newStatus}`);
+
+        try {
+            await updateMilestone(id, { status: newStatus });
+            toast.success(`Milestone status updated to ${newStatus}`);
+        } catch (error) {
+            setItems(originalItems); // Revert
+            toast.error("Failed to update status");
+        }
     };
 
-    const handleProgressUpdate = (id: string, progress: number) => {
+    const handleProgressUpdate = async (id: string, progress: number) => {
+        // Debouncing would be ideal here, but for now simple optimistic
         setItems((prev) =>
             prev.map((item) =>
                 item.id === id
@@ -140,12 +131,21 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
                     : item
             )
         );
+        // We won't call DB on every drag event for performance in this demo, strictly should use debounce
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: string) => {
+        const originalItems = [...items];
         setItems((prev) => prev.filter((item) => item.id !== id));
-        toast.success("Milestone deleted");
         setMenuOpenId(null);
+
+        try {
+            await deleteMilestone(id);
+            toast.success("Milestone deleted");
+        } catch (error) {
+            setItems(originalItems);
+            toast.error("Failed to delete milestone");
+        }
     };
 
     const getPriorityColor = (priority: string) => {
@@ -161,21 +161,13 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
         }
     };
 
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case "completed":
-                return <Check className="w-4 h-4" />;
-            case "active":
-                return <Clock className="w-4 h-4" />;
-            case "pending":
-                return <Circle className="w-4 h-4" />;
-            default:
-                return <Circle className="w-4 h-4" />;
-        }
-    };
+    if (isLoading) {
+        return <div className="bg-white rounded-xl border border-[#e2e8f0] shadow-sm p-12 text-center text-slate-400">Loading timeline...</div>;
+    }
 
     return (
         <div className="bg-white rounded-xl border border-[#e2e8f0] shadow-sm">
+            {/* Same JSX as before, just mapping items */}
             <div className="p-6 border-b border-[#e2e8f0]">
                 <h2 className="text-lg font-bold text-[#0f172a]">Timeline Milestones</h2>
                 <p className="text-sm text-[#64748b] mt-1">Drag to reorder, click to edit</p>
@@ -187,6 +179,9 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
                 onReorder={setItems}
                 className="divide-y divide-[#e2e8f0]"
             >
+                {items.length === 0 && (
+                    <div className="p-12 text-center text-slate-400">No milestones yet. Create one to get started.</div>
+                )}
                 {items.map((item, index) => (
                     <Reorder.Item
                         key={item.id}
@@ -292,12 +287,12 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
                                         </div>
                                         <div className="flex items-center gap-1.5">
                                             <Users className="w-3.5 h-3.5" />
-                                            <span>{item.assignees.join(", ")}</span>
+                                            <span>{item.assignees?.join(", ") || "Unassigned"}</span>
                                         </div>
-                                        {item.dependencies && (
+                                        {item.dependencies && item.dependencies.length > 0 && (
                                             <div className="flex items-center gap-1.5">
                                                 <Flag className="w-3.5 h-3.5" />
-                                                <span>Depends on milestone {item.dependencies.join(", ")}</span>
+                                                <span>Depends on others</span>
                                             </div>
                                         )}
                                     </div>

@@ -21,6 +21,13 @@ export type Customer = {
         customerSince: string;
         engagementScore: number;
     };
+    history?: {
+        event: string;
+        date: string;
+        id: string;
+        amount: number;
+        tickets: number;
+    }[];
 };
 
 // Mock Data
@@ -118,15 +125,16 @@ export const mockCustomers: Customer[] = [
 ];
 
 interface CustomerListProps {
+    customers: Customer[];
     selectedId: string;
     onSelect: (customer: Customer) => void;
 }
 
-export function CustomerList({ selectedId, onSelect }: CustomerListProps) {
+export function CustomerList({ customers, selectedId, onSelect }: CustomerListProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState("All Tiers");
 
-    const filteredCustomers = mockCustomers.filter(c =>
+    const filteredCustomers = customers.filter(c =>
         (activeTab === "All Tiers" || c.tier === activeTab) &&
         (c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             c.email.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -137,7 +145,7 @@ export function CustomerList({ selectedId, onSelect }: CustomerListProps) {
             <div className="p-6 border-b border-[#e2e8f0]">
                 <div className="mb-4">
                     <h2 className="text-lg font-bold text-[#0f172a]">Customers</h2>
-                    <p className="text-sm text-[#64748b]">{mockCustomers.length} total customers</p>
+                    <p className="text-sm text-[#64748b]">{customers.length} total customers</p>
                 </div>
 
                 <div className="relative mb-4">
@@ -167,8 +175,8 @@ export function CustomerList({ selectedId, onSelect }: CustomerListProps) {
                             key={tab}
                             onClick={() => setActiveTab(tab)}
                             className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${activeTab === tab
-                                    ? "bg-[#1DB954] text-white"
-                                    : "bg-slate-100 text-[#64748b] hover:bg-slate-200"
+                                ? "bg-[#1DB954] text-white"
+                                : "bg-slate-100 text-[#64748b] hover:bg-slate-200"
                                 }`}
                         >
                             {tab}
@@ -183,8 +191,8 @@ export function CustomerList({ selectedId, onSelect }: CustomerListProps) {
                         key={customer.id}
                         onClick={() => onSelect(customer)}
                         className={`p-4 rounded-xl border transition-all cursor-pointer relative group ${selectedId === customer.id
-                                ? "bg-white border-[#1DB954] ring-1 ring-[#1DB954] shadow-sm"
-                                : "bg-white border-[#e2e8f0] hover:border-[#cbd5e1] hover:shadow-sm"
+                            ? "bg-white border-[#1DB954] ring-1 ring-[#1DB954] shadow-sm"
+                            : "bg-white border-[#e2e8f0] hover:border-[#cbd5e1] hover:shadow-sm"
                             }`}
                     >
                         <input
@@ -201,9 +209,9 @@ export function CustomerList({ selectedId, onSelect }: CustomerListProps) {
                                 <div className="flex items-center gap-2">
                                     <h3 className="font-semibold text-[#0f172a]">{customer.name}</h3>
                                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${customer.tier === 'Gold' ? 'bg-yellow-100 text-yellow-700' :
-                                            customer.tier === 'Silver' ? 'bg-slate-100 text-slate-600' :
-                                                customer.tier === 'Bronze' ? 'bg-orange-50 text-orange-700' :
-                                                    'bg-purple-100 text-purple-700'
+                                        customer.tier === 'Silver' ? 'bg-slate-100 text-slate-600' :
+                                            customer.tier === 'Bronze' ? 'bg-orange-50 text-orange-700' :
+                                                'bg-purple-100 text-purple-700'
                                         }`}>
                                         {customer.tier}
                                     </span>

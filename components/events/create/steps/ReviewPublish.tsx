@@ -2,12 +2,61 @@
 
 import { Calendar, MapPin, Tag, Ticket, Shield } from "lucide-react";
 import { EventFormData } from "../CreateEventWizard";
+import { createEvent } from "@/app/actions/events";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface StepProps {
     data: EventFormData;
 }
 
 export function ReviewPublish({ data }: StepProps) {
+    const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
+
+    const handlePublish = async () => {
+        setIsLoading(true);
+        const formData = new FormData();
+        formData.append("title", data.name);
+        formData.append("description", data.description);
+        formData.append("locationName", data.location.split(',')[0] || data.location); // Simple parse
+        formData.append("locationAddress", data.location);
+        formData.append("startDate", data.startDate?.toISOString() || "");
+        formData.append("endDate", data.endDate?.toISOString() || "");
+        formData.append("category", data.category);
+
+        if (data.imageFile) {
+            formData.append("image", data.imageFile);
+        }
+
+        // Add tickets
+        const tickets = data.tickets.map(t => ({
+            name: t.name,
+            price: t.price,
+            quantity: t.quantity,
+            description: t.description || ''
+        }));
+        formData.append("tickets", JSON.stringify(tickets));
+
+        // Add ticket design files
+        data.tickets.forEach((ticket, index) => {
+            if (ticket.designFile) {
+                formData.append(`ticketDesign_${index}`, ticket.designFile);
+            }
+        });
+
+        const result = await createEvent(formData);
+
+        if (result?.error) {
+            toast.error(result.error);
+        } else {
+            toast.success("Event Published Successfully!");
+            router.push("/dashboard");
+        }
+        setIsLoading(false);
+    };
+
     return (
         <div className="space-y-6 max-w-3xl mx-auto">
             <div className="text-center mb-8">
@@ -17,10 +66,18 @@ export function ReviewPublish({ data }: StepProps) {
 
             <div className="bg-white border border-[#e2e8f0] rounded-2xl overflow-hidden shadow-sm">
                 {/* Event Banner Preview */}
-                <div className="h-48 bg-slate-100 relative">
-                    <div className="absolute inset-0 flex items-center justify-center text-[#94a3b8]">
-                        <span className="text-sm">Banner Image Preview</span>
-                    </div>
+                <div className="h-48 bg-slate-100 relative overflow-hidden">
+                    {data.imageFile ? (
+                        <img
+                            src={URL.createObjectURL(data.imageFile)}
+                            alt="Banner Preview"
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-[#94a3b8]">
+                            <span className="text-sm">No Banner Image Selected</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="p-6 space-y-6">
@@ -41,7 +98,9 @@ export function ReviewPublish({ data }: StepProps) {
                             </div>
                             <div>
                                 <div className="text-xs text-[#64748b] font-semibold uppercase">Date & Time</div>
-                                <div className="text-sm font-medium text-[#0f172a]">To Be Announced</div>
+                                <div className="text-sm font-medium text-[#0f172a]">
+                                    {data.startDate ? data.startDate.toLocaleDateString() : "TBA"}
+                                </div>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -57,15 +116,37 @@ export function ReviewPublish({ data }: StepProps) {
 
                     <div>
                         <h3 className="text-sm font-bold text-[#0f172a] mb-3">Ticket Types</h3>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             {data.tickets && data.tickets.length > 0 ? (
                                 data.tickets.map((ticket) => (
-                                    <div key={ticket.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-[#e2e8f0]">
-                                        <div className="flex items-center gap-3">
-                                            <Ticket className="w-4 h-4 text-[#1DB954]" />
-                                            <span className="text-sm font-medium text-[#0f172a]">{ticket.name}</span>
+                                    <div key={ticket.id} className="p-4 bg-slate-50 rounded-xl border border-[#e2e8f0]">
+                                        <div className="flex justify-between items-start gap-4">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <Ticket className="w-4 h-4 text-[#1DB954]" />
+                                                    <span className="text-sm font-semibold text-[#0f172a]">{ticket.name}</span>
+                                                </div>
+                                                {ticket.description && (
+                                                    <p className="text-xs text-[#64748b] mb-2">{ticket.description}</p>
+                                                )}
+                                                <div className="flex items-center gap-4 text-xs text-[#64748b]">
+                                                    <span>Qty: {ticket.quantity}</span>
+                                                    <span className="font-bold text-[#0f172a]">SZL {ticket.price}</span>
+                                                </div>
+                                            </div>
+                                            {ticket.designPreview && (
+                                                <div className="relative w-32 h-20 rounded-lg overflow-hidden border border-[#e2e8f0] flex-shrink-0">
+                                                    <img
+                                                        src={ticket.designPreview}
+                                                        alt={`${ticket.name} design`}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    <div className="absolute bottom-0 right-0 bg-black/60 text-white text-[8px] px-1 py-0.5">
+                                                        Custom Design
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="text-sm font-bold text-[#0f172a]">SZL {ticket.price}</div>
                                     </div>
                                 ))
                             ) : (
@@ -82,6 +163,16 @@ export function ReviewPublish({ data }: StepProps) {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div className="flex justify-end">
+                <button
+                    onClick={handlePublish}
+                    disabled={isLoading}
+                    className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-white py-3 rounded-xl font-bold text-lg shadow-lg shadow-green-200 transition-all hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {isLoading ? "Publishing..." : "Confirm & Publish Event"}
+                </button>
             </div>
         </div>
     );

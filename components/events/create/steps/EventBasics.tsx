@@ -72,6 +72,8 @@ export function EventBasics({ data, update }: StepProps) {
                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8]" />
                             <input
                                 type="datetime-local"
+                                value={data.startDate ? new Date(data.startDate.getTime() - data.startDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
+                                onChange={(e) => update({ startDate: e.target.value ? new Date(e.target.value) : null })}
                                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#e2e8f0] bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954] transition-all"
                             />
                         </div>
@@ -84,6 +86,8 @@ export function EventBasics({ data, update }: StepProps) {
                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8]" />
                             <input
                                 type="datetime-local"
+                                value={data.endDate ? new Date(data.endDate.getTime() - data.endDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''}
+                                onChange={(e) => update({ endDate: e.target.value ? new Date(e.target.value) : null })}
                                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#e2e8f0] bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1DB954]/20 focus:border-[#1DB954] transition-all"
                             />
                         </div>

@@ -129,17 +129,13 @@ export function CustomerDetails({ customer }: CustomerDetailsProps) {
 
                 {/* Purchase List */}
                 <div className="space-y-4">
-                    {[
-                        { event: "Neon Dreams Festival", date: "Feb 19, 2025", id: "TIX-8421", amount: 750, tickets: 2 },
-                        { event: "Tech Conference 2024", date: "Jan 15, 2025", id: "TIX-7892", amount: 180, tickets: 1 },
-                        { event: "Art Exhibition", date: "Dec 10, 2024", id: "TIX-7234", amount: 450, tickets: 3 },
-                    ].map((purchase, i) => (
+                    {(customer.history || []).map((purchase, i) => (
                         <div key={i} className="bg-white border border-[#e2e8f0] rounded-xl p-6 hover:shadow-sm transition-shadow">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <h4 className="font-bold text-[#0f172a] text-lg">{purchase.event}</h4>
                                     <p className="text-sm text-[#64748b] mt-1">
-                                        {purchase.id} • {purchase.date}
+                                        {purchase.id} • {new Date(purchase.date).toLocaleDateString()}
                                     </p>
                                 </div>
                                 <div className="text-right">

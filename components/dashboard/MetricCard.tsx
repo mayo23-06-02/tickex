@@ -34,28 +34,28 @@ export function MetricCard({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay }}
-            className="bg-white rounded-xl p-6 shadow-sm border border-[#e2e8f0] relative overflow-hidden"
+            className="bg-card rounded-xl p-6 shadow-sm border border-border relative overflow-hidden"
         >
             <div className="flex justify-between items-start mb-4">
                 <div>
-                    <h3 className="text-sm font-medium text-[#64748b]">{title}</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
                     {isLive && (
                         <div className="flex items-center gap-2 mt-1">
                             <span className="relative flex h-2.5 w-2.5">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
                             </span>
-                            <span className="text-lg font-bold text-[#0f172a]">{value}</span>
+                            <span className="text-lg font-bold text-foreground">{value}</span>
                         </div>
                     )}
                     {!isLive && value && (
                         <div className="mt-1 flex items-baseline gap-2">
-                            <span className="text-2xl font-bold text-[#0f172a] tracking-tight">{value}</span>
+                            <span className="text-2xl font-bold text-foreground tracking-tight">{value}</span>
                         </div>
                     )}
                 </div>
                 {icon && (
-                    <div className={!isLive ? "p-2 bg-slate-50 rounded-lg" : ""}>
+                    <div className={!isLive ? "p-2 bg-muted rounded-lg" : ""}>
                         {icon}
                     </div>
                 )}

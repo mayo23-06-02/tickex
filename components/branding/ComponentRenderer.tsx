@@ -13,8 +13,16 @@ interface ComponentRendererProps {
 }
 
 export function ComponentRenderer({ component, globalStyles }: ComponentRendererProps) {
+    // Use Merriweather for headings if Montserrat is selected for body
+    const headingFont = globalStyles.fontFamily === "Montserrat" ? "Merriweather" : globalStyles.fontFamily;
+    const bodyFont = globalStyles.fontFamily;
+
     const commonStyle = {
-        fontFamily: globalStyles.fontFamily,
+        fontFamily: bodyFont,
+    };
+
+    const headingStyle = {
+        fontFamily: headingFont,
     };
 
     switch (component.type) {
@@ -53,7 +61,7 @@ export function ComponentRenderer({ component, globalStyles }: ComponentRenderer
 
         case "about":
             return (
-                <div className="py-16 px-8" style={{ backgroundColor: "#f8f9fa" }}>
+                <div className="py-16 px-8 bg-muted/30">
                     <div className="max-w-4xl mx-auto">
                         <h2
                             className="text-4xl font-bold mb-6"
@@ -70,7 +78,7 @@ export function ComponentRenderer({ component, globalStyles }: ComponentRenderer
 
         case "lineup":
             return (
-                <div className="py-16 px-8" style={{ backgroundColor: "white" }}>
+                <div className="py-16 px-8 bg-card">
                     <div className="max-w-6xl mx-auto">
                         <h2
                             className="text-4xl font-bold text-center mb-12"
@@ -102,7 +110,7 @@ export function ComponentRenderer({ component, globalStyles }: ComponentRenderer
 
         case "tickets":
             return (
-                <div className="py-16 px-8" style={{ backgroundColor: "#f8f9fa" }}>
+                <div className="py-16 px-8 bg-muted/30">
                     <div className="max-w-6xl mx-auto">
                         <h2
                             className="text-4xl font-bold text-center mb-12"
@@ -153,7 +161,7 @@ export function ComponentRenderer({ component, globalStyles }: ComponentRenderer
 
         case "gallery":
             return (
-                <div className="py-16 px-8" style={{ backgroundColor: "white" }}>
+                <div className="py-16 px-8 bg-card">
                     <div className="max-w-6xl mx-auto">
                         <h2
                             className="text-4xl font-bold text-center mb-12"
@@ -180,7 +188,7 @@ export function ComponentRenderer({ component, globalStyles }: ComponentRenderer
 
         case "faq":
             return (
-                <div className="py-16 px-8" style={{ backgroundColor: "#f8f9fa" }}>
+                <div className="py-16 px-8 bg-muted/30">
                     <div className="max-w-3xl mx-auto">
                         <h2
                             className="text-4xl font-bold text-center mb-12"

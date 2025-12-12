@@ -92,8 +92,14 @@ export function DesignPanel({
                             <option value="Inter">Inter</option>
                             <option value="Roboto">Roboto</option>
                             <option value="Poppins">Poppins</option>
-                            <option value="Montserrat">Montserrat</option>
+                            <option value="Montserrat">Montserrat (Recommended)</option>
+                            <option value="Merriweather">Merriweather</option>
+                            <option value="Open Sans">Open Sans</option>
+                            <option value="Lato">Lato</option>
                         </select>
+                        <p className="text-xs text-[#64748b] mt-1">
+                            💡 Tip: Use Montserrat for body text and Merriweather for headings
+                        </p>
                     </div>
                 </div>
             </div>

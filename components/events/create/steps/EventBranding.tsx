@@ -19,11 +19,23 @@ export function EventBranding({ data, update }: StepProps) {
             {/* Banner Image */}
             <div className="space-y-3">
                 <label className="text-sm font-medium text-[#0f172a]">Event Banner</label>
-                <div className="border-2 border-dashed border-[#e2e8f0] rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors cursor-pointer group bg-slate-50/50">
+                <div className="border-2 border-dashed border-[#e2e8f0] rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors cursor-pointer group bg-slate-50/50 relative">
+                    <input
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                                update({ imageFile: e.target.files[0] });
+                            }
+                        }}
+                    />
                     <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <Upload className="w-6 h-6 text-[#1DB954]" />
                     </div>
-                    <div className="text-sm font-medium text-[#0f172a] mb-1">Click to upload or drag and drop</div>
+                    <div className="text-sm font-medium text-[#0f172a] mb-1">
+                        {data.imageFile ? data.imageFile.name : "Click to upload or drag and drop"}
+                    </div>
                     <div className="text-xs text-[#64748b]">SVG, PNG, JPG or GIF (max. 800x400px)</div>
                 </div>
             </div>

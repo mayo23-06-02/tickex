@@ -1,3 +1,5 @@
+"use client";
+
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 
@@ -7,9 +9,9 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="min-h-screen bg-[#f8fafc]">
+        <div className="min-h-screen bg-background">
             <Sidebar />
-            <div className="pl-64">
+            <div className="ml-64">
                 <Header />
                 <main className="p-8">
                     {children}

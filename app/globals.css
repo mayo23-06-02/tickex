@@ -1,50 +1,102 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --primary: #1DB954;
-  --primary-hover: #1ed760;
-  --secondary: #8B5CF6;
-  --secondary-hover: #7c3aed;
+  /* Brand Colors */
+  --primary: #7A3FFF;
+  /* Brand Purple */
+  --primary-foreground: #ffffff;
+  --secondary: #F5F5F5;
+  /* Neutral Light Gray */
+  --secondary-foreground: #333333;
+  /* Dark Text */
+
+  --accent: #C86DD7;
+  /* Gradient Accent */
+
+  /* Status Colors */
+  --success: #27AE60;
+  --warning: #F2994A;
+  --error: #EB5757;
+  --info: #2D9CDB;
+
+  /* Backgrounds & Foreground */
+  --background: #F5F5F5;
+  --foreground: #333333;
+
+  --card: #ffffff;
+  --card-foreground: #333333;
+
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #7A3FFF;
+
+  /* Sidebar/Muted */
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --border: #e2e8f0;
 }
 
 @theme inline {
+  --font-sans: var(--font-inter), sans-serif;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+
   --color-secondary: var(--secondary);
-  --color-secondary-hover: var(--secondary-hover);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-accent: var(--accent);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+
   --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --radius-lg: 0.5rem;
+  /* 8px */
+  --radius-md: 0.375rem;
+  /* 6px */
+  --radius-sm: 0.25rem;
+  /* 4px */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --card: #171717;
-    --card-foreground: #ededed;
-    --border: #262626;
-    --muted: #262626;
-    --muted-foreground: #a3a3a3;
+    --background: #1a1a1a;
+    /* Darker than #333333 for main BG in dark mode? Or stick to #333333 as requested? User might want literally #333333. Let's start with darker for better contrast if #333333 is text. */
+    /* Re-reading user request: "Neutral grays (#F5F5F5, #333333) for backgrounds and text". 
+       Likely #F5F5F5 bg with #333333 text for light mode.
+       For dark mode, maybe #333333 bg with lighter text?
+       Let's assume standard behavior but strictly defining the requested colors. */
+    --background: #333333;
+    --foreground: #F5F5F5;
+
+    --card: #404040;
+    --card-foreground: #F5F5F5;
+
+    --border: #555555;
+    --input: #555555;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), sans-serif;
 }
+
 
 /* Wave Animations */
 @keyframes wave-slow {

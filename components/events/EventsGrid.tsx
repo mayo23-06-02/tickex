@@ -4,7 +4,7 @@ import { Calendar, MoreVertical, Copy, Trash2, ExternalLink } from "lucide-react
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Event } from "@/app/events/page";
+import type { Event } from "@/app/dashboard/events/page";
 
 interface EventsGridProps {
     events: Event[];
@@ -44,14 +44,19 @@ export function EventsGrid({ events, viewMode, onDelete, onDuplicate }: EventsGr
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             className="bg-white rounded-2xl overflow-hidden border border-[#e2e8f0] hover:shadow-lg transition-all group cursor-pointer"
-                            onClick={() => router.push(`/events/${event.id}`)}
+                            onClick={() => router.push(`/dashboard/events/${event.id}`)}
                         >
                             {/* Event Color Header */}
                             <div
-                                className="h-32 relative flex items-center justify-center"
-                                style={{ background: event.color }}
+                                className="h-32 relative flex items-center justify-center bg-cover bg-center"
+                                style={{
+                                    background: event.imageUrl ? `url(${event.imageUrl})` : event.color,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center'
+                                }}
                             >
-                                <h3 className="text-white text-xl font-bold px-4 text-center">{event.name}</h3>
+                                <div className="absolute inset-0 bg-black/20" /> {/* Overlay for text readability */}
+                                <h3 className="text-white text-xl font-bold px-4 text-center z-10 relative shadow-black/50 drop-shadow-md">{event.name}</h3>
 
                                 {/* Menu Button */}
                                 <div className="absolute top-3 right-3" onClick={(e) => e.stopPropagation()}>
@@ -71,7 +76,7 @@ export function EventsGrid({ events, viewMode, onDelete, onDuplicate }: EventsGr
                                                 className="absolute right-0 top-10 z-10 bg-white shadow-xl rounded-lg border border-[#e2e8f0] p-1 min-w-[160px]"
                                             >
                                                 <button
-                                                    onClick={() => router.push(`/events/${event.id}`)}
+                                                    onClick={() => router.push(`/dashboard/events/${event.id}`)}
                                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#0f172a] hover:bg-slate-50 rounded-md transition-colors"
                                                 >
                                                     <ExternalLink className="w-3.5 h-3.5" />
@@ -165,13 +170,17 @@ export function EventsGrid({ events, viewMode, onDelete, onDuplicate }: EventsGr
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-[#e2e8f0] last:border-b-0 hover:bg-slate-50 cursor-pointer transition-colors"
-                        onClick={() => router.push(`/events/${event.id}`)}
+                        onClick={() => router.push(`/dashboard/events/${event.id}`)}
                     >
                         <div className="col-span-4 flex items-center gap-3">
-                            <div
-                                className="w-3 h-3 rounded-full flex-shrink-0"
-                                style={{ background: event.color }}
-                            />
+                            {event.imageUrl ? (
+                                <div className="w-8 h-8 rounded-lg bg-cover bg-center flex-shrink-0 border border-slate-200" style={{ backgroundImage: `url(${event.imageUrl})` }} />
+                            ) : (
+                                <div
+                                    className="w-3 h-3 rounded-full flex-shrink-0"
+                                    style={{ background: event.color }}
+                                />
+                            )}
                             <span className="font-semibold text-[#0f172a] truncate">{event.name}</span>
                         </div>
                         <div className="col-span-2 flex items-center text-sm text-[#64748b]">
@@ -206,7 +215,7 @@ export function EventsGrid({ events, viewMode, onDelete, onDuplicate }: EventsGr
                                             className="absolute right-0 top-8 z-10 bg-white shadow-xl rounded-lg border border-[#e2e8f0] p-1 min-w-[160px]"
                                         >
                                             <button
-                                                onClick={() => router.push(`/events/${event.id}`)}
+                                                onClick={() => router.push(`/dashboard/events/${event.id}`)}
                                                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#0f172a] hover:bg-slate-50 rounded-md transition-colors"
                                             >
                                                 <ExternalLink className="w-3.5 h-3.5" />

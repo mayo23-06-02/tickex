@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
     LayoutGrid,
@@ -20,13 +21,13 @@ import {
 import { motion } from "framer-motion";
 
 const menuItems = [
-    { icon: LayoutGrid, label: "Dashboard", href: "/" },
+    { icon: LayoutGrid, label: "Dashboard", href: "/dashboard" },
+    { icon: CalendarDays, label: "Events", href: "/dashboard/events" },
     { icon: Calendar, label: "Bookings", href: "/bookings" },
-    { icon: Ticket, label: "Tickets", href: "/tickets" },
+    { icon: Ticket, label: "Ticket Designer", href: "/tickets", description: "Design & manage tickets" },
     { icon: DollarSign, label: "Financials", href: "/financials" },
     { icon: Users, label: "Customers", href: "/customers" },
     { icon: TrendingUp, label: "Promotions", href: "/promotions" },
-    { icon: CalendarDays, label: "Events", href: "/events" },
     { icon: Clock, label: "Event Timeline", href: "/event-timeline" },
     { icon: Palette, label: "Branding & Design", href: "/branding" },
     { icon: MessageSquare, label: "Communications", href: "/communications" },
@@ -37,12 +38,16 @@ export function Sidebar() {
     const pathname = usePathname();
 
     return (
-        <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-[#e2e8f0] flex flex-col z-50">
-            <div className="p-6 flex items-center gap-2">
-                <div className="w-8 h-8 bg-[#8B5CF6] rounded-lg flex items-center justify-center text-white font-bold text-xl">
-                    t
-                </div>
-                <span className="text-2xl font-bold text-[#8B5CF6]">tickex</span>
+        <aside className="fixed left-0 top-0 h-screen w-64 bg-card border-r border-border flex flex-col z-50">
+            <div className="p-6">
+                <Image
+                    src="/logo.svg"
+                    alt="tickex"
+                    width={120}
+                    height={36}
+                    className="h-9 w-auto"
+                    priority
+                />
             </div>
 
             <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
@@ -53,44 +58,44 @@ export function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative group ${isActive
-                                ? "text-white"
-                                : "text-[#64748b] hover:bg-slate-50 hover:text-[#0f172a]"
+                                ? "text-primary-foreground"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                 }`}
                         >
                             {isActive && (
                                 <motion.div
                                     layoutId="activeTab"
-                                    className="absolute inset-0 bg-[#a855f7] rounded-lg shadow-sm"
+                                    className="absolute inset-0 bg-primary rounded-lg shadow-sm"
                                     initial={false}
                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                 />
                             )}
-                            <item.icon className={`w-5 h-5 relative z-10 ${isActive ? "text-white" : ""}`} />
+                            <item.icon className={`w-5 h-5 relative z-10 ${isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"}`} />
                             <span className="relative z-10">{item.label}</span>
                         </Link>
                     );
                 })}
             </div>
 
-            <div className="p-4 border-t border-[#e2e8f0] space-y-1">
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#64748b] hover:bg-slate-50 hover:text-[#0f172a] transition-colors">
+            <div className="p-4 border-t border-border space-y-1">
+                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                     <Settings className="w-5 h-5" />
                     <span>Settings</span>
                 </button>
-                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#64748b] hover:bg-slate-50 hover:text-[#0f172a] transition-colors">
+                <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                     <HelpCircle className="w-5 h-5" />
                     <span>Help</span>
                 </button>
             </div>
 
-            <div className="p-4 border-t border-[#e2e8f0]">
+            <div className="p-4 border-t border-border">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#a855f7] flex items-center justify-center text-white font-medium">
+                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-medium">
                         <Users className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-[#0f172a] truncate">Organizer</p>
-                        <p className="text-xs text-[#64748b] truncate">View Account</p>
+                        <p className="text-sm font-medium text-foreground truncate">Organizer</p>
+                        <p className="text-xs text-muted-foreground truncate">View Account</p>
                     </div>
                 </div>
             </div>

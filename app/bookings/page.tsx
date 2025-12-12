@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { BookingsStats } from "@/components/bookings/BookingsStats";
 import { BookingsFilters } from "@/components/bookings/BookingsFilters";
@@ -8,75 +8,8 @@ import { BookingsTable } from "@/components/bookings/BookingsTable";
 import { SalesIntelligenceSidebar } from "@/components/bookings/SalesIntelligenceSidebar";
 import { BookingDetailsModal, Booking } from "@/components/bookings/BookingDetailsModal";
 import { parse, isWithinInterval, startOfDay, endOfDay } from "date-fns";
-
-const mockBookings: Booking[] = [
-    {
-        id: "TIX-8421",
-        customer: { name: "John Smith", email: "john.smith@example.com", phone: "+268 7600 1234", initials: "JS", bgColor: "bg-green-600" },
-        type: "VIP",
-        qty: 2,
-        date: "Feb 19, 2025",
-        time: "14:32",
-        amount: 750,
-        payment: "Card",
-        status: "Confirmed"
-    },
-    {
-        id: "TIX-8422",
-        customer: { name: "Sarah Johnson", email: "sarah.j@example.com", phone: "+268 7600 5678", initials: "SJ", bgColor: "bg-blue-600" },
-        type: "General",
-        qty: 4,
-        date: "Feb 18, 2025",
-        time: "09:15",
-        amount: 240,
-        payment: "PayPal",
-        status: "Confirmed"
-    },
-    {
-        id: "TIX-8423",
-        customer: { name: "Mike Wilson", email: "mike.w@example.com", phone: "+268 7600 9012", initials: "MW", bgColor: "bg-purple-600" },
-        type: "VIP",
-        qty: 1,
-        date: "Feb 17, 2025",
-        time: "16:48",
-        amount: 180,
-        payment: "Card",
-        status: "Pending"
-    },
-    {
-        id: "TIX-8424",
-        customer: { name: "Emma Davis", email: "emma.d@example.com", phone: "+268 7600 3456", initials: "ED", bgColor: "bg-orange-600" },
-        type: "General",
-        qty: 2,
-        date: "Feb 16, 2025",
-        time: "11:22",
-        amount: 50,
-        payment: "Cash",
-        status: "Confirmed"
-    },
-    {
-        id: "TIX-8425",
-        customer: { name: "Tom Brown", email: "tom.b@example.com", phone: "+268 7600 7890", initials: "TB", bgColor: "bg-indigo-600" },
-        type: "VIP",
-        qty: 3,
-        date: "Feb 15, 2025",
-        time: "13:05",
-        amount: 420,
-        payment: "Card",
-        status: "Confirmed"
-    },
-    {
-        id: "TIX-8426",
-        customer: { name: "Lisa Chen", email: "lisa.c@example.com", phone: "+268 7600 2345", initials: "LC", bgColor: "bg-pink-600" },
-        type: "General",
-        qty: 2,
-        date: "Feb 14, 2025",
-        time: "10:30",
-        amount: 120,
-        payment: "PayPal",
-        status: "Cancelled"
-    }
-];
+import { getBookings, getBookingsStats, getSalesOverTime, getConversionFunnel, type BookingData, type BookingsStats as StatsData } from "@/app/actions/bookings";
+import { RefreshCw } from "lucide-react";
 
 export default function BookingsPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -86,8 +19,73 @@ export default function BookingsPage() {
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
+    // Real data state
+    const [bookings, setBookings] = useState<BookingData[]>([]);
+    const [stats, setStats] = useState<StatsData>({
+        todaysSales: 0,
+        pendingPayments: 0,
+        refundRequests: 0,
+        avgTicketPrice: 0,
+    });
+    const [salesData, setSalesData] = useState<any[]>([]);
+    const [funnelData, setFunnelData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    // Fetch data function
+    const fetchData = async () => {
+        try {
+            setRefreshing(true);
+
+            // Fetch all data in parallel
+            const [bookingsData, statsData, salesOverTime, funnel] = await Promise.all([
+                getBookings({
+                    search: searchQuery,
+                    status: statusFilter,
+                    type: typeFilter,
+                    startDate,
+                    endDate,
+                }),
+                getBookingsStats(),
+                getSalesOverTime(7),
+                getConversionFunnel(),
+            ]);
+
+            setBookings(bookingsData);
+            setStats(statsData);
+            setSalesData(salesOverTime);
+            setFunnelData(funnel);
+        } catch (error) {
+            console.error("Error fetching bookings data:", error);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    // Initial load
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    // Refetch when filters change
+    useEffect(() => {
+        if (!loading) {
+            fetchData();
+        }
+    }, [searchQuery, statusFilter, typeFilter, startDate, endDate]);
+
+    // Auto-refresh every 30 seconds for real-time updates
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchData();
+        }, 30000); // 30 seconds
+
+        return () => clearInterval(interval);
+    }, [searchQuery, statusFilter, typeFilter, startDate, endDate]);
+
     const filteredBookings = useMemo(() => {
-        return mockBookings.filter(booking => {
+        return bookings.filter(booking => {
             // Search Filter
             const matchesSearch =
                 booking.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -113,18 +111,28 @@ export default function BookingsPage() {
 
             return matchesSearch && matchesStatus && matchesType && matchesDate;
         });
-    }, [searchQuery, statusFilter, typeFilter, startDate, endDate]);
+    }, [bookings, searchQuery, statusFilter, typeFilter, startDate, endDate]);
 
     return (
         <DashboardLayout>
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-[#0f172a]">Bookings</h1>
-                <p className="text-[#64748b]">Sales intelligence and booking management</p>
+            <div className="mb-8 flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
+                    <p className="text-muted-foreground">Sales intelligence and booking management</p>
+                </div>
+                <button
+                    onClick={fetchData}
+                    disabled={refreshing}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                    <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                    {refreshing ? 'Refreshing...' : 'Refresh'}
+                </button>
             </div>
 
             <div className="flex flex-col xl:flex-row gap-6">
                 <div className="flex-1 min-w-0">
-                    <BookingsStats />
+                    <BookingsStats stats={stats} loading={loading} />
                     <BookingsFilters
                         searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery}
@@ -142,12 +150,17 @@ export default function BookingsPage() {
                     <BookingsTable
                         bookings={filteredBookings}
                         onSelectBooking={setSelectedBooking}
+                        loading={loading}
                     />
                 </div>
 
                 <div className="w-full xl:w-80 flex-shrink-0">
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-[#e2e8f0] sticky top-24">
-                        <SalesIntelligenceSidebar />
+                    <div className="bg-card rounded-xl p-6 shadow-sm border border-border sticky top-24">
+                        <SalesIntelligenceSidebar
+                            salesData={salesData}
+                            funnelData={funnelData}
+                            loading={loading}
+                        />
                     </div>
                 </div>
             </div>

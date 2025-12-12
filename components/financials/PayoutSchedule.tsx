@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Clock, Info, CheckSquare, Square, CreditCard, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getBills, createBill, payBill } from "@/app/actions/financials";
+import { toast } from "sonner";
 
 interface PayoutItem {
     id: string;
@@ -21,11 +23,8 @@ interface PaymentFormData {
 }
 
 export function PayoutSchedule() {
-    const [payouts, setPayouts] = useState<PayoutItem[]>([
-        { id: "1", title: "Venue Rental", date: "Mar 1, 2025", amount: 15000, status: "Pending", type: "rent" },
-        { id: "2", title: "Catering Service", date: "Mar 5, 2025", amount: 8500, status: "Pending", type: "service" },
-        { id: "3", title: "Artist Payment", date: "Mar 10, 2025", amount: 12000, status: "Scheduled", type: "artist" },
-    ]);
+    const [payouts, setPayouts] = useState<PayoutItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [paymentModalId, setPaymentModalId] = useState<string | null>(null);
@@ -38,6 +37,30 @@ export function PayoutSchedule() {
         cvv: ""
     });
 
+    useEffect(() => {
+        loadBills();
+    }, []);
+
+    async function loadBills() {
+        try {
+            const data = await getBills();
+            const formatted = data.map((bill: any) => ({
+                id: bill._id,
+                title: bill.title,
+                date: bill.dueDate,
+                amount: bill.amount,
+                status: bill.status,
+                type: bill.type
+            }));
+            setPayouts(formatted);
+        } catch (error) {
+            console.error("Failed to load bills", error);
+            toast.error("Failed to load bills");
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     const toggleSelection = (id: string) => {
         const newSelected = new Set(selectedIds);
         if (newSelected.has(id)) {
@@ -48,17 +71,27 @@ export function PayoutSchedule() {
         setSelectedIds(newSelected);
     };
 
-    const handleBulkPay = () => {
-        setPayouts(prev => prev.map(item =>
-            selectedIds.has(item.id) ? { ...item, status: "Paid" } : item
-        ));
+    const handleBulkPay = async () => {
+        // Bulk pay not yet implemented in backend properly for atomicity, simple loop for now
+        toast.info("Bulk payment for selected items processing...");
+        for (const id of Array.from(selectedIds)) {
+            try {
+                await payBill(id, { method: "bulk_card_sim", last4: "0000" });
+            } catch (e) { console.error(e); }
+        }
+        await loadBills();
         setSelectedIds(new Set());
+        toast.success("Selected bills paid");
     };
 
-    const handleMarkAsPaid = (id: string) => {
-        setPayouts(prev => prev.map(item =>
-            item.id === id ? { ...item, status: "Paid" } : item
-        ));
+    const handleMarkAsPaid = async (id: string) => {
+        try {
+            await payBill(id, { method: "manual_mark", last4: "N/A" });
+            toast.success("Bill marked as paid");
+            loadBills();
+        } catch (error) {
+            toast.error("Failed to update bill");
+        }
     };
 
     const openPaymentModal = (id: string) => {
@@ -82,21 +115,29 @@ export function PayoutSchedule() {
         e.preventDefault();
         setIsProcessing(true);
 
-        // Simulate payment processing
+        // Simulate payment processing delay
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        setIsProcessing(false);
-        setPaymentSuccess(true);
+        try {
+            if (paymentModalId) {
+                await payBill(paymentModalId, {
+                    method: "credit_card",
+                    last4: paymentForm.cardNumber.slice(-4)
+                });
+            }
+            setIsProcessing(false);
+            setPaymentSuccess(true);
 
-        // Wait for success animation
-        await new Promise(resolve => setTimeout(resolve, 1500));
+            // Wait for success animation
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
-        // Mark as paid
-        if (paymentModalId) {
-            handleMarkAsPaid(paymentModalId);
+            closePaymentModal();
+            loadBills();
+            toast.success("Payment successful");
+        } catch (error) {
+            setIsProcessing(false);
+            toast.error("Payment failed");
         }
-
-        closePaymentModal();
     };
 
     const formatCardNumber = (value: string) => {
@@ -130,27 +171,34 @@ export function PayoutSchedule() {
         type: "service"
     });
 
-    const handleSavePayment = () => {
+    const handleSavePayment = async () => {
         if (!newPayment.title || !newPayment.amount || !newPayment.date) return;
 
-        const payment: PayoutItem = {
-            id: Date.now().toString(),
-            title: newPayment.title,
-            date: newPayment.date,
-            amount: Number(newPayment.amount),
-            status: "Scheduled",
-            type: newPayment.type as "rent" | "service" | "artist" || "service"
-        };
-
-        setPayouts([payment, ...payouts]);
-        setIsAdding(false);
-        setNewPayment({ title: "", date: "", amount: 0, type: "service" });
+        try {
+            await createBill({
+                title: newPayment.title,
+                amount: Number(newPayment.amount),
+                dueDate: newPayment.date,
+                type: newPayment.type
+            });
+            setIsAdding(false);
+            setNewPayment({ title: "", date: "", amount: 0, type: "service" });
+            loadBills();
+            toast.success("Bill scheduled");
+        } catch (error) {
+            toast.error("Failed to schedule bill");
+        }
     };
 
     const currentPaymentItem = payouts.find(p => p.id === paymentModalId);
 
+    if (isLoading) {
+        return <div className="bg-white rounded-xl p-6 shadow-sm border border-[#e2e8f0] h-96 animate-pulse"></div>;
+    }
+
     return (
         <div className="bg-white rounded-xl p-6 shadow-sm border border-[#e2e8f0]">
+            {/* ... (Existing JSX structure remains mostly same, just updating handlers moved above) ... */}
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-[#0f172a]">Payout Schedule</h3>
                 <div className="flex gap-2">
@@ -298,7 +346,7 @@ export function PayoutSchedule() {
                     ))}
                 </AnimatePresence>
 
-                {payouts.length === 0 && (
+                {payouts.length === 0 && !isLoading && (
                     <div className="text-center py-8 text-slate-400 text-sm">No scheduled payouts</div>
                 )}
             </div>

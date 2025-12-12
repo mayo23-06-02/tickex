@@ -6,10 +6,10 @@ import { ChevronRight, Check } from "lucide-react";
 import { EventBasics } from "./steps/EventBasics";
 import { EventBranding } from "./steps/EventBranding";
 import { TicketSetup } from "./steps/TicketSetup";
-import { EventPolicies } from "./steps/EventPolicies";
 import { ReviewPublish } from "./steps/ReviewPublish";
 
 export type EventFormData = {
+    id?: string;
     name: string;
     organizer: string;
     category: string;
@@ -17,9 +17,20 @@ export type EventFormData = {
     endDate: Date | null;
     location: string;
     description: string;
-    tickets: any[];
+    tickets: Array<{
+        id: number;
+        realId?: string;
+        name: string;
+        price: number;
+        quantity: number;
+        description?: string;
+        designFile?: File | null;
+        designPreview?: string;
+    }>;
     refundPolicy: string;
     ageRestriction: string;
+    imageFile: File | null;
+    imageUrl?: string;
 };
 
 const initialData: EventFormData = {
@@ -33,19 +44,25 @@ const initialData: EventFormData = {
     tickets: [],
     refundPolicy: "non-refundable",
     ageRestriction: "18+",
+    imageFile: null,
 };
 
 const steps = [
     { id: 1, title: "Event Basics", description: "Name, Date & Venue" },
     { id: 2, title: "Content", description: "Branding & Details" },
     { id: 3, title: "Tickets", description: "Types & Pricing" },
-    { id: 4, title: "Policies", description: "Rules & Regulations" },
-    { id: 5, title: "Review", description: "Preview & Publish" },
+    { id: 4, title: "Review", description: "Preview & Publish" },
 ];
 
-export function CreateEventWizard() {
+
+interface CreateEventWizardProps {
+    initialData?: EventFormData;
+    isEditing?: boolean;
+}
+
+export function CreateEventWizard({ initialData: propInitialData, isEditing = false }: CreateEventWizardProps) {
     const [currentStep, setCurrentStep] = useState(1);
-    const [formData, setFormData] = useState<EventFormData>(initialData);
+    const [formData, setFormData] = useState<EventFormData>(propInitialData || initialData);
 
     const updateFormData = (data: Partial<EventFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
@@ -72,8 +89,8 @@ export function CreateEventWizard() {
                             <div key={step.id} className="flex flex-col items-center gap-2 bg-[#f8fafc] px-2">
                                 <div
                                     className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${isCompleted ? "bg-[#1DB954] border-[#1DB954] text-white" :
-                                            isCurrent ? "bg-white border-[#1DB954] text-[#1DB954]" :
-                                                "bg-white border-slate-200 text-slate-400"
+                                        isCurrent ? "bg-white border-[#1DB954] text-[#1DB954]" :
+                                            "bg-white border-slate-200 text-slate-400"
                                         }`}
                                 >
                                     {isCompleted ? <Check className="w-5 h-5" /> : <span className="font-bold">{step.id}</span>}
@@ -104,8 +121,7 @@ export function CreateEventWizard() {
                         {currentStep === 1 && <EventBasics data={formData} update={updateFormData} />}
                         {currentStep === 2 && <EventBranding data={formData} update={updateFormData} />}
                         {currentStep === 3 && <TicketSetup data={formData} update={updateFormData} />}
-                        {currentStep === 4 && <EventPolicies data={formData} update={updateFormData} />}
-                        {currentStep === 5 && <ReviewPublish data={formData} />}
+                        {currentStep === 4 && <ReviewPublish data={formData} />}
                     </motion.div>
                 </AnimatePresence>
             </div>
@@ -116,8 +132,8 @@ export function CreateEventWizard() {
                     onClick={prevStep}
                     disabled={currentStep === 1}
                     className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-colors ${currentStep === 1
-                            ? "text-slate-300 cursor-not-allowed"
-                            : "text-[#64748b] hover:text-[#0f172a] hover:bg-white border border-transparent hover:border-[#e2e8f0]"
+                        ? "text-slate-300 cursor-not-allowed"
+                        : "text-[#64748b] hover:text-[#0f172a] hover:bg-white border border-transparent hover:border-[#e2e8f0]"
                         }`}
                 >
                     Back
@@ -125,9 +141,9 @@ export function CreateEventWizard() {
 
                 <button
                     onClick={nextStep}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg text-sm font-medium transition-all shadow-sm shadow-green-200"
+                    className={`flex items-center gap-2 px-6 py-2.5 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg text-sm font-medium transition-all shadow-sm shadow-green-200 ${currentStep === steps.length ? 'hidden' : ''}`}
                 >
-                    {currentStep === steps.length ? "Publish Event" : "Continue"}
+                    Continue
                     <ChevronRight className="w-4 h-4" />
                 </button>
             </div>
