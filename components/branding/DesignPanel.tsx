@@ -1,6 +1,7 @@
 "use client";
 
-import type { WebsiteComponent } from "./WebsiteBuilder";
+import type { WebsiteComponent } from "./types";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 
 interface DesignPanelProps {
     selectedComponent: WebsiteComponent | undefined;
@@ -111,30 +112,59 @@ export function DesignPanel({
                         {selectedComponent.type} Settings
                     </h4>
                     <div className="space-y-4">
-                        {Object.entries(selectedComponent.props).map(([key, value]) => (
-                            <div key={key}>
-                                <label className="text-sm font-medium text-[#0f172a] mb-2 block capitalize">
-                                    {key.replace(/([A-Z])/g, " $1").trim()}
-                                </label>
-                                {typeof value === "string" && (
-                                    <input
-                                        type="text"
-                                        value={value}
-                                        onChange={(e) =>
-                                            onUpdateComponent(selectedComponent.id, {
-                                                [key]: e.target.value,
-                                            })
-                                        }
-                                        className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-sm"
-                                    />
-                                )}
-                                {Array.isArray(value) && (
-                                    <div className="text-xs text-[#64748b] bg-slate-50 p-2 rounded">
-                                        Array with {value.length} items
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                        {Object.entries(selectedComponent.props).map(([key, value]) => {
+                            const isImageField = /image|photo|bg|background/i.test(key);
+
+                            return (
+                                <div key={key}>
+                                    <label className="text-sm font-medium text-[#0f172a] mb-2 block capitalize">
+                                        {key.replace(/([A-Z])/g, " $1").trim()}
+                                    </label>
+
+                                    {isImageField ? (
+                                        <ImageUpload
+                                            value={value as string}
+                                            onChange={(url) =>
+                                                onUpdateComponent(selectedComponent.id, {
+                                                    [key]: url,
+                                                })
+                                            }
+                                        />
+                                    ) : typeof value === "string" ? (
+                                        <input
+                                            type="text"
+                                            value={value}
+                                            onChange={(e) =>
+                                                onUpdateComponent(selectedComponent.id, {
+                                                    [key]: e.target.value,
+                                                })
+                                            }
+                                            className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-sm"
+                                        />
+                                    ) : Array.isArray(value) ? (
+                                        <div className="space-y-2">
+                                            {value.map((item: any, i: number) => (
+                                                <div key={i} className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={typeof item === 'string' ? item : JSON.stringify(item)}
+                                                        className="flex-1 px-3 py-2 rounded-lg border border-[#e2e8f0] text-sm bg-slate-50"
+                                                        readOnly
+                                                    />
+                                                </div>
+                                            ))}
+                                            <p className="text-xs text-[#64748b]">
+                                                (List editing coming soon - switch to manual mode if needed)
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="text-xs text-[#64748b] bg-slate-50 p-2 rounded">
+                                            Unsupported type: {typeof value}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             ) : (

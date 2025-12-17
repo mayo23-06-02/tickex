@@ -3,7 +3,7 @@
 import { Trash2, Eye } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { WebsiteComponent } from "./WebsiteBuilder";
+import type { WebsiteComponent } from "./types";
 import { ComponentRenderer } from "./ComponentRenderer";
 
 interface BuilderCanvasProps {

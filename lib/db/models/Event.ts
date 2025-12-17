@@ -12,6 +12,11 @@ const EventSchema = new Schema(
             required: [true, "Please provide an event title"],
             maxlength: [100, "Title cannot be more than 100 characters"],
         },
+        slug: {
+            type: String,
+            unique: true,
+            sparse: true,
+        },
         description: {
             type: String,
             required: [true, "Please provide a description"],

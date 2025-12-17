@@ -3,15 +3,16 @@
 import { useState } from "react";
 import {
     Ticket, Calendar, MapPin, Download, QrCode, Check, Clock, X,
-    Shield, Lock, FileText, HelpCircle, ChevronRight, Filter, Search, Loader2
+    Shield, Lock, FileText, HelpCircle, ChevronRight, Filter, Search, Loader2, ArrowUpRight, Menu
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CustomerLayout } from "@/components/layout/CustomerLayout";
 import { toast } from "sonner";
 import { pdf } from '@react-pdf/renderer';
 // @ts-ignore
 import bwipjs from 'bwip-js';
 import { TicketDocument } from "@/components/tickets/TicketDocument";
+import Link from "next/link";
+import { CustomerLayout } from "../layout/CustomerLayout";
 
 interface Order {
     id: string;
@@ -48,15 +49,16 @@ export default function MyOrdersClient({ initialOrders = [], userName }: MyOrder
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [filterStatus, setFilterStatus] = useState<'all' | 'confirmed' | 'pending' | 'cancelled'>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const getStatusColor = (status: Order['status']) => {
         switch (status) {
             case 'confirmed':
-                return 'bg-success/10 text-success border-success/20';
+                return 'bg-green-100 text-green-700 border-green-200';
             case 'pending':
-                return 'bg-warning/10 text-warning border-warning/20';
+                return 'bg-yellow-100 text-yellow-700 border-yellow-200';
             case 'cancelled':
-                return 'bg-error/10 text-error border-error/20';
+                return 'bg-red-100 text-red-700 border-red-200';
         }
     };
 
@@ -104,6 +106,7 @@ export default function MyOrdersClient({ initialOrders = [], userName }: MyOrder
     };
 
     const handleDownloadPDF = async (order: Order) => {
+        // ... (existing logic same as before, simplified for brevity as logic doesn't change with theme)
         try {
             setDownloadingOrderId(order.id);
             toast.loading("Generating tickets...");
@@ -183,252 +186,161 @@ export default function MyOrdersClient({ initialOrders = [], userName }: MyOrder
     };
 
     return (
+
         <CustomerLayout>
-            {/* Header Section */}
-            <div className="mb-8">
-                <div className="flex items-center justify-between mb-6">
+            <div className="max-w-7xl mx-auto px-6 lg:px-12 py-32">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-foreground mb-2">My Orders</h1>
-                        <p className="text-muted-foreground">View and manage your event tickets</p>
+                        <h1 className="text-4xl font-bold mb-2 text-slate-900">My <span className="text-primary">Orders</span></h1>
+                        <p className="text-slate-500">Manage your tickets and upcoming events</p>
                     </div>
 
-                    {/* Trust Badges */}
-                    <div className="hidden lg:flex items-center gap-4">
-                        <div className="flex items-center gap-2 px-4 py-2 bg-success/10 border border-success/20 rounded-lg">
-                            <Shield className="w-5 h-5 text-success" />
-                            <span className="text-sm font-medium text-success">Secure Payments</span>
+                    {/* Stats Row */}
+                    <div className="flex gap-4 overflow-x-auto pb-2">
+                        <div className="bg-white border border-slate-200 p-4 rounded-xl min-w-[140px] shadow-sm">
+                            <div className="text-slate-500 text-xs uppercase font-bold mb-1">Total Orders</div>
+                            <div className="text-2xl font-bold text-slate-900">{stats.total}</div>
                         </div>
-                        <div className="flex items-center gap-2 px-4 py-2 bg-info/10 border border-info/20 rounded-lg">
-                            <Lock className="w-5 h-5 text-info" />
-                            <span className="text-sm font-medium text-info">Protected Data</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-card border border-border rounded-xl p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground mb-1">Total Orders</p>
-                                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                                <Ticket className="w-6 h-6 text-primary" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-card border border-border rounded-xl p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground mb-1">Confirmed</p>
-                                <p className="text-2xl font-bold text-success">{stats.confirmed}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-success/10 rounded-full flex items-center justify-center">
-                                <Check className="w-6 h-6 text-success" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-card border border-border rounded-xl p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground mb-1">Pending</p>
-                                <p className="text-2xl font-bold text-warning">{stats.pending}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-warning/10 rounded-full flex items-center justify-center">
-                                <Clock className="w-6 h-6 text-warning" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-card border border-border rounded-xl p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-muted-foreground mb-1">Total Spent</p>
-                                <p className="text-2xl font-bold text-foreground">SZL {stats.totalSpent}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                                <FileText className="w-6 h-6 text-primary" />
-                            </div>
+                        <div className="bg-white border border-slate-200 p-4 rounded-xl min-w-[140px] shadow-sm">
+                            <div className="text-slate-500 text-xs uppercase font-bold mb-1">Spent</div>
+                            <div className="text-2xl font-bold text-slate-900">SZL {stats.totalSpent}</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="bg-white p-4 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 border border-slate-200 shadow-sm">
                     <div className="flex-1 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Search orders by event name or order ID..."
+                            placeholder="Search by event or order ID..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:border-primary font-medium"
                         />
                     </div>
-
-                    <div className="flex items-center gap-2">
-                        <Filter className="w-5 h-5 text-muted-foreground" />
+                    <div className="relative">
+                        <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value as any)}
-                            className="px-4 py-2.5 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+                            className="h-full pl-12 pr-8 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 appearance-none cursor-pointer focus:outline-none focus:border-primary font-medium"
                         >
                             <option value="all">All Status</option>
                             <option value="confirmed">Confirmed</option>
                             <option value="pending">Pending</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
+                        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 rotate-90 pointer-events-none" />
                     </div>
                 </div>
-            </div>
 
-            {/* Orders List */}
-            {filteredOrders.length === 0 ? (
-                <div className="bg-card border border-border rounded-xl p-12 text-center">
-                    <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Ticket className="w-10 h-10 text-muted-foreground" />
-                    </div>
-                    <h2 className="text-xl font-bold text-foreground mb-2">No Orders Found</h2>
-                    <p className="text-muted-foreground mb-6">
-                        {searchQuery || filterStatus !== 'all'
-                            ? 'Try adjusting your search or filters'
-                            : 'Start exploring events and book your tickets!'}
-                    </p>
-                    <a
-                        href="/events"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:opacity-90 text-primary-foreground font-semibold rounded-lg transition-all"
-                    >
-                        Browse Events
-                        <ChevronRight className="w-4 h-4" />
-                    </a>
-                </div>
-            ) : (
-                <div className="space-y-4">
-                    {filteredOrders.map((order, index) => (
-                        <motion.div
-                            key={order.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
-                        >
-                            <div className="grid md:grid-cols-12 gap-6 p-6">
-                                {/* Event Image */}
-                                <div className="md:col-span-3">
-                                    <div className="aspect-video md:aspect-square rounded-lg overflow-hidden bg-muted">
-                                        {order.eventImage ? (
-                                            <img
-                                                src={order.eventImage}
-                                                alt={order.eventTitle}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-                                                <Ticket className="w-12 h-12 text-primary-foreground/30" />
+                {/* Orders List */}
+                <div className="space-y-6">
+                    {filteredOrders.length === 0 ? (
+                        <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-sm">
+                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Ticket className="w-10 h-10 text-slate-400" />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 mb-2">No orders found</h3>
+                            <p className="text-slate-500 mb-6">Looks like you haven't booked any events yet.</p>
+                            <Link href="/events" className="px-8 py-3 bg-primary hover:bg-[#d90d6b] text-white font-bold rounded-full inline-flex items-center gap-2">
+                                Browse Events <ArrowUpRight className="w-4 h-4" />
+                            </Link>
+                        </div>
+                    ) : (
+                        filteredOrders.map((order, index) => (
+                            <motion.div
+                                key={order.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="bg-white border border-slate-200 rounded-3xl p-6 hover:border-primary/30 transition-all group shadow-sm hover:shadow-md"
+                            >
+                                <div className="grid md:grid-cols-12 gap-8">
+                                    {/* Image */}
+                                    <div className="md:col-span-3">
+                                        <div className="aspect-video md:aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100 relative">
+                                            {order.eventImage ? (
+                                                <img src={order.eventImage} alt={order.eventTitle} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-300">
+                                                    <Ticket className="w-12 h-12" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="md:col-span-6 flex flex-col justify-center">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${getStatusColor(order.status)}`}>
+                                                {getStatusIcon(order.status)}
+                                                {order.status.toUpperCase()}
+                                            </span>
+                                            <span className="text-slate-400 text-sm font-mono">#{order.id.slice(0, 8)}</span>
+                                        </div>
+
+                                        <h3 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">{order.eventTitle}</h3>
+
+                                        <div className="flex flex-wrap gap-x-6 gap-y-2 text-slate-500 text-sm mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className="w-4 h-4 text-primary" />
+                                                {formatDate(order.eventDate)}
                                             </div>
+                                            <div className="flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-primary" />
+                                                {order.eventLocation}
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                            {order.tickets.map(t => (
+                                                <div key={t.id} className="flex justify-between items-center text-sm py-1">
+                                                    <span className="text-slate-600">{t.quantity}x {t.type}</span>
+                                                    <span className="font-bold text-slate-900">SZL {t.price * t.quantity}</span>
+                                                </div>
+                                            ))}
+                                            <div className="border-t border-slate-200 mt-2 pt-2 flex justify-between items-center">
+                                                <span className="text-slate-500 font-bold">Total</span>
+                                                <span className="text-primary font-bold text-lg">SZL {order.totalAmount}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="md:col-span-3 flex flex-col justify-center gap-3">
+                                        {order.status === 'confirmed' && (
+                                            <>
+                                                <button
+                                                    onClick={() => setSelectedOrder(order)}
+                                                    className="w-full py-4 bg-primary hover:bg-[#d90d6b] text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                                                >
+                                                    <QrCode className="w-5 h-5" /> View Ticket
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDownloadPDF(order)}
+                                                    disabled={downloadingOrderId === order.id}
+                                                    className="w-full py-4 bg-white border border-slate-300 hover:border-primary text-slate-700 hover:text-primary font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    {downloadingOrderId === order.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                                                    {downloadingOrderId === order.id ? 'Generating...' : 'Download PDF'}
+                                                </button>
+                                            </>
+                                        )}
+                                        {order.status === 'pending' && (
+                                            <button className="w-full py-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-xl transition-all">
+                                                Complete Payment
+                                            </button>
                                         )}
                                     </div>
                                 </div>
-
-                                {/* Order Details */}
-                                <div className="md:col-span-6 space-y-4">
-                                    <div>
-                                        <div className="flex items-start gap-3 mb-3">
-                                            <div className="flex-1">
-                                                <h3 className="text-xl font-bold text-foreground mb-1">{order.eventTitle}</h3>
-                                                <p className="text-sm text-muted-foreground font-mono">Order #{order.id}</p>
-                                            </div>
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(order.status)}`}>
-                                                {getStatusIcon(order.status)}
-                                                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                                            <div className="flex items-center gap-1.5">
-                                                <Calendar className="w-4 h-4" />
-                                                <span>{formatDate(order.eventDate)}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <MapPin className="w-4 h-4" />
-                                                <span>{order.eventLocation}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        {order.tickets.map((ticket) => (
-                                            <div key={ticket.id} className="flex justify-between items-center text-sm py-2 border-b border-border last:border-0">
-                                                <span className="text-muted-foreground">
-                                                    {ticket.type} × {ticket.quantity}
-                                                </span>
-                                                <span className="font-semibold text-foreground">
-                                                    SZL {(ticket.price * ticket.quantity).toLocaleString()}
-                                                </span>
-                                            </div>
-                                        ))}
-                                        <div className="flex justify-between items-center pt-2">
-                                            <span className="font-bold text-foreground">Total</span>
-                                            <span className="text-xl font-bold text-primary">
-                                                SZL {order.totalAmount.toLocaleString()}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="text-xs text-muted-foreground">
-                                        Purchased on {formatDate(order.purchaseDate)} at {formatTime(order.purchaseDate)}
-                                    </div>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="md:col-span-3 flex flex-col gap-3">
-                                    {order.status === 'confirmed' && (
-                                        <>
-                                            <button
-                                                onClick={() => setSelectedOrder(order)}
-                                                className="w-full py-3 px-4 bg-primary hover:opacity-90 text-primary-foreground font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
-                                            >
-                                                <QrCode className="w-4 h-4" />
-                                                View Tickets
-                                            </button>
-                                            <button
-                                                onClick={() => handleDownloadPDF(order)}
-                                                disabled={downloadingOrderId === order.id}
-                                                className="w-full py-3 px-4 border border-border hover:bg-muted text-foreground font-semibold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                {downloadingOrderId === order.id ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    <Download className="w-4 h-4" />
-                                                )}
-                                                {downloadingOrderId === order.id ? 'Generating...' : 'Download Tickets'}
-                                            </button>
-                                        </>
-                                    )}
-                                    {order.status === 'pending' && (
-                                        <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg text-center">
-                                            <Clock className="w-6 h-6 text-warning mx-auto mb-2" />
-                                            <p className="text-xs text-warning font-medium">
-                                                Payment pending. Complete payment to receive tickets.
-                                            </p>
-                                            <button className="mt-3 w-full py-2 bg-warning text-white font-semibold rounded-lg hover:opacity-90 transition-all">
-                                                Complete Payment
-                                            </button>
-                                        </div>
-                                    )}
-                                    <button className="w-full py-2 px-4 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-2">
-                                        <HelpCircle className="w-4 h-4" />
-                                        Need Help?
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        ))
+                    )}
                 </div>
-            )}
+            </div>
 
             {/* Ticket Modal */}
             <AnimatePresence>
@@ -441,52 +353,38 @@ export default function MyOrdersClient({ initialOrders = [], userName }: MyOrder
                         onClick={() => setSelectedOrder(null)}
                     >
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-card rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-border"
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-white w-full max-w-md rounded-[2rem] overflow-hidden border border-slate-200 shadow-2xl"
+                            onClick={e => e.stopPropagation()}
                         >
-                            <div className="p-6 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
-                                <h2 className="text-2xl font-bold mb-1">{selectedOrder.eventTitle}</h2>
-                                <p className="text-primary-foreground/90 text-sm">{formatDate(selectedOrder.eventDate)}</p>
+                            <div className="bg-gradient-to-r from-primary to-[#9926f0] p-8 text-center relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                                <h3 className="text-2xl font-bold text-white mb-1 relative z-10">{selectedOrder.eventTitle}</h3>
+                                <p className="text-white/80 relative z-10">{formatDate(selectedOrder.eventDate)} | {selectedOrder.eventLocation}</p>
                             </div>
 
-                            <div className="p-6 space-y-6">
-                                {/* QR Code */}
-                                <div className="bg-white border-2 border-border rounded-xl p-6">
-                                    <div className="w-48 h-48 mx-auto bg-muted rounded-lg flex items-center justify-center relative">
-                                        <QrCode className="w-32 h-32 text-muted-foreground" />
-                                        <div className="absolute text-xs text-muted-foreground">Scan at venue</div>
-                                    </div>
+                            <div className="p-8">
+                                <div className="bg-slate-50 rounded-2xl p-6 mb-8 text-center shadow-inner border border-slate-100">
+                                    <QrCode className="w-40 h-40 mx-auto text-slate-900 mb-4" />
+                                    <p className="text-slate-500 text-xs font-mono uppercase tracking-widest">Scan this code at entrance</p>
                                 </div>
 
-                                {/* Ticket Details */}
-                                <div className="space-y-3">
-                                    {selectedOrder.tickets.map((ticket) => (
-                                        <div key={ticket.id} className="p-3 bg-muted rounded-lg">
-                                            <div className="flex justify-between items-center">
-                                                <div>
-                                                    <div className="font-bold text-foreground">{ticket.type}</div>
-                                                    <div className="text-sm text-muted-foreground">Quantity: {ticket.quantity}</div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="font-bold text-primary">SZL {ticket.price}</div>
-                                                </div>
-                                            </div>
+                                <div className="space-y-4 mb-8">
+                                    {selectedOrder.tickets.map(t => (
+                                        <div key={t.id} className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
+                                            <span className="text-slate-500 text-lg">{t.quantity}x {t.type}</span>
+                                            <span className="text-slate-900 font-bold text-lg">SZL {t.price * t.quantity}</span>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div className="text-center text-xs text-muted-foreground">
-                                    Order ID: {selectedOrder.id}
-                                </div>
-
                                 <button
                                     onClick={() => setSelectedOrder(null)}
-                                    className="w-full py-3 bg-muted hover:bg-muted/80 text-foreground font-semibold rounded-xl transition-all"
+                                    className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all"
                                 >
-                                    Close
+                                    Close Ticket
                                 </button>
                             </div>
                         </motion.div>

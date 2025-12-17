@@ -1,6 +1,6 @@
 "use client";
 
-import { WebsiteComponent } from "./WebsiteBuilder";
+import { WebsiteComponent } from "./types";
 
 interface ComponentRendererProps {
     component: WebsiteComponent;

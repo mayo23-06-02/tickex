@@ -6,18 +6,15 @@ import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-ki
 import { ComponentLibrary } from "./ComponentLibrary";
 import { BuilderCanvas } from "./BuilderCanvas";
 import { DesignPanel } from "./DesignPanel";
-
-export interface WebsiteComponent {
-    id: string;
-    type: "hero" | "about" | "lineup" | "tickets" | "gallery" | "faq" | "footer";
-    props: Record<string, any>;
-}
+import { WebsiteComponent } from "./types";
 
 interface WebsiteBuilderProps {
     previewMode: "desktop" | "mobile";
     showCode: boolean;
     components: WebsiteComponent[];
     onUpdateComponents: (components: WebsiteComponent[]) => void;
+    globalStyles: any;
+    onUpdateGlobalStyles: (styles: any) => void;
 }
 
 const defaultComponents: WebsiteComponent[] = [
@@ -43,17 +40,18 @@ const defaultComponents: WebsiteComponent[] = [
     },
 ];
 
-export function WebsiteBuilder({ previewMode, showCode, components: externalComponents, onUpdateComponents }: WebsiteBuilderProps) {
+export function WebsiteBuilder({
+    previewMode,
+    showCode,
+    components: externalComponents,
+    onUpdateComponents,
+    globalStyles,
+    onUpdateGlobalStyles
+}: WebsiteBuilderProps) {
     // Use external components if provided and not empty, otherwise use defaults
     const initialComponents = externalComponents.length > 0 ? externalComponents : defaultComponents;
     const [components, setComponents] = useState<WebsiteComponent[]>(initialComponents);
     const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
-    const [globalStyles, setGlobalStyles] = useState({
-        primaryColor: "#1DB954",
-        secondaryColor: "#0f172a",
-        fontFamily: "Inter",
-        backgroundColor: "#ffffff",
-    });
 
     const isInitialMount = useRef(true);
 
@@ -130,7 +128,7 @@ export function WebsiteBuilder({ previewMode, showCode, components: externalComp
                     selectedComponent={components.find((c) => c.id === selectedComponent)}
                     onUpdateComponent={handleUpdateComponent}
                     globalStyles={globalStyles}
-                    onUpdateGlobalStyles={setGlobalStyles}
+                    onUpdateGlobalStyles={onUpdateGlobalStyles}
                 />
             </div>
         </div>

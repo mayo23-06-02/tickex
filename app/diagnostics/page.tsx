@@ -2,29 +2,57 @@ import dbConnect from "@/lib/db/connect";
 import Event from "@/lib/db/models/Event";
 import TicketType from "@/lib/db/models/TicketType";
 
+export const dynamic = 'force-dynamic';
+
 export default async function DiagnosticsPage() {
-    await dbConnect();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let eventsWithTickets: any[] = [];
+    let error = null;
 
-    // Get all events
-    const events = await Event.find({}).limit(10).lean();
+    try {
+        await dbConnect();
 
-    // Get ticket types for each event
-    const eventsWithTickets = await Promise.all(
-        events.map(async (event) => {
-            const tickets = await TicketType.find({ event: event._id }).lean();
-            return {
-                id: event._id.toString(),
-                title: event.title,
-                status: event.status,
-                ticketCount: tickets.length,
-                tickets: tickets.map(t => ({
-                    name: t.name,
-                    price: t.price,
-                    remaining: t.quantityTotal - t.quantitySold
-                }))
-            };
-        })
-    );
+        // Get all events
+        const events = await Event.find({}).limit(10).lean();
+
+        // Get ticket types for each event
+        eventsWithTickets = await Promise.all(
+            events.map(async (event) => {
+                const tickets = await TicketType.find({ event: event._id }).lean();
+                return {
+                    id: event._id.toString(),
+                    title: event.title,
+                    status: event.status,
+                    ticketCount: tickets.length,
+                    tickets: tickets.map(t => ({
+                        name: t.name,
+                        price: t.price,
+                        remaining: t.quantityTotal - t.quantitySold
+                    }))
+                };
+            })
+        );
+    } catch (e: any) {
+        console.error("Diagnostics DB Error:", e);
+        error = e.message || "Failed to connect to database";
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-background p-8">
+                <div className="max-w-4xl mx-auto">
+                    <h1 className="text-3xl font-bold text-foreground mb-8">Database Diagnostics</h1>
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 text-destructive">
+                        <h2 className="text-xl font-semibold mb-2">Connection Error</h2>
+                        <p>{error}</p>
+                        <p className="mt-4 text-sm text-muted-foreground">
+                            Check your MONGODB_URI and ensuring your IP is whitelisted in MongoDB Atlas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background p-8">
@@ -33,7 +61,7 @@ export default async function DiagnosticsPage() {
 
                 <div className="bg-card border border-border rounded-lg p-6 mb-6">
                     <h2 className="text-xl font-semibold text-foreground mb-4">
-                        Events in Database: {events.length}
+                        Events in Database: {eventsWithTickets.length}
                     </h2>
 
                     {eventsWithTickets.length === 0 ? (

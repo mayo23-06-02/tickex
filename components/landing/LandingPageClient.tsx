@@ -1,319 +1,659 @@
 "use client";
 
-import { useState } from "react";
-import { Search, MapPin, ChevronRight, ChevronLeft, User, ShoppingBag, Calendar } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import {
+  Search,
+  MapPin,
+  Calendar,
+  ArrowRight,
+  ChevronRight,
+  Star,
+  Users,
+  Ticket,
+  Clock,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { motion } from "framer-motion";
 
 interface LandingPageProps {
-    featuredEvents: any[];
-    trendingEvents: any[];
+  featuredEvents: any[];
+  trendingEvents: any[];
 }
 
-export default function LandingPageClient({ featuredEvents, trendingEvents }: LandingPageProps) {
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedCity, setSelectedCity] = useState("Mbabane");
+export default function LandingPageClient({
+  featuredEvents,
+  trendingEvents,
+}: LandingPageProps) {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const heroRef = useRef<HTMLDivElement>(null);
 
-    const categories = [
-        { id: "sports", title: "Sports", icon: "⚽", gradient: "from-blue-500 to-blue-600" },
-        { id: "concerts", title: "Concerts", icon: "🎸", gradient: "from-purple-500 to-purple-600" },
-        { id: "family", title: "Family Friendly", icon: "👨‍👩‍👧", gradient: "from-pink-500 to-pink-600" },
-        { id: "theater", title: "Theater & Comedy", icon: "🎭", gradient: "from-orange-500 to-orange-600" },
-        { id: "music", title: "Music", icon: "🎵", gradient: "from-green-500 to-green-600" },
-    ];
+  // Event categories
+  const categories = [
+    { id: "all", name: "All Events", icon: "🎉", color: "bg-primary" },
+    { id: "music", name: "Music", icon: "🎵", color: "bg-accent" },
+    { id: "sports", name: "Sports", icon: "⚽", color: "bg-success" },
+    { id: "arts", name: "Arts & Theater", icon: "🎭", color: "bg-warning" },
+    { id: "food", name: "Food & Drink", icon: "🍕", color: "bg-error" },
+    { id: "conference", name: "Conferences", icon: "💼", color: "bg-info" },
+  ];
 
-    const musicGenres = [
-        { id: "pop", title: "Pop", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400" },
-        { id: "rock", title: "Rock", image: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=400" },
-        { id: "country", title: "Country", image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400" },
-        { id: "hiphop", title: "Hip-Hop", image: "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=400" },
-        { id: "rnb", title: "R&B", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400" },
-    ];
+  // Stats data
+  const stats = [
+    {
+      value: "50K+",
+      label: "Events Hosted",
+      icon: <Ticket className="w-5 h-5" />,
+    },
+    {
+      value: "1M+",
+      label: "Happy Attendees",
+      icon: <Users className="w-5 h-5" />,
+    },
+    { value: "200+", label: "Cities", icon: <MapPin className="w-5 h-5" /> },
+    { value: "24/7", label: "Support", icon: <Clock className="w-5 h-5" /> },
+  ];
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-            {/* Header */}
-            <header className="sticky top-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/10">
-                <div className="max-w-7xl mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        {/* Logo */}
-                        <Link href="/" className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-gradient-to-br from-[#1DB954] to-[#1ed760] rounded-xl flex items-center justify-center shadow-lg shadow-green-500/50">
-                                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                                </svg>
-                            </div>
-                            <span className="text-2xl font-black text-white">TickEx</span>
-                        </Link>
+  // Features
+  const features = [
+    {
+      title: "Secure Ticketing",
+      description: "Blockchain-verified tickets with anti-fraud protection",
+      icon: "🛡️",
+      color: "bg-primary/10",
+    },
+    {
+      title: "Instant Delivery",
+      description: "Digital tickets delivered instantly to your device",
+      icon: "⚡",
+      color: "bg-success/10",
+    },
+    {
+      title: "Best Price Guarantee",
+      description:
+        "We ensure you get the best prices or we refund the difference",
+      icon: "💰",
+      color: "bg-warning/10",
+    },
+    {
+      title: "Easy Refunds",
+      description: "Hassle-free refunds up to 24 hours before the event",
+      icon: "↩️",
+      color: "bg-info/10",
+    },
+  ];
 
-                        {/* Search Bar */}
-                        <div className="hidden md:flex flex-1 max-w-xl mx-8">
-                            <div className="relative w-full">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Search for event, performer, venue"
-                                    className="w-full pl-12 pr-4 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1DB954]/50 focus:border-[#1DB954] transition-all"
-                                />
-                            </div>
-                        </div>
+  // Testimonials
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      role: "Event Organizer",
+      content:
+        "Tickex made selling tickets effortless. The platform is intuitive and the support team is fantastic!",
+      rating: 5,
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+    },
+    {
+      name: "Michael Chen",
+      role: "Music Festival Attendee",
+      content:
+        "Found tickets to all my favorite festivals at great prices. The mobile app is super convenient!",
+      rating: 5,
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael",
+    },
+    {
+      name: "Emma Rodriguez",
+      role: "Corporate Event Manager",
+      content:
+        "The analytics dashboard helped us understand our audience better. Highly recommend!",
+      rating: 5,
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
+    },
+  ];
 
-                        {/* Right Actions */}
-                        <div className="flex items-center gap-4">
-                            <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-white hover:text-[#1DB954] transition-colors">
-                                <MapPin className="w-4 h-4" />
-                                <span className="text-sm font-medium">{selectedCity}</span>
-                            </button>
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchQuery) params.append("search", searchQuery);
+    if (selectedCity) params.append("location", selectedCity);
+    if (selectedDate) params.append("date", selectedDate);
 
-                            <Link href="/my-orders" className="hidden sm:flex items-center gap-2 px-4 py-2 text-white hover:text-[#1DB954] transition-colors">
-                                <ShoppingBag className="w-4 h-4" />
-                                <span className="text-sm font-medium">My Orders</span>
-                            </Link>
+    router.push(`/events?${params.toString()}`);
+  };
 
-                            <Link href="/auth/organizer/login" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white text-sm font-bold rounded-full transition-all">
-                                Sell Tickets
-                            </Link>
-
-                            <Link href="/auth/customer/login" className="p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full transition-all">
-                                <User className="w-5 h-5 text-white" />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* Hero Section */}
-            <section className="relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/20 to-slate-900"></div>
-
-                <div className="relative max-w-7xl mx-auto px-6 py-16">
-                    {/* Featured Event Hero */}
-                    <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-purple-900/50">
-                        <div className="aspect-[21/9] relative">
-                            {featuredEvents[0]?.imageUrl ? (
-                                <img
-                                    src={featuredEvents[0].imageUrl}
-                                    alt={featuredEvents[0].title}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600"></div>
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
-
-                            {/* Hero Content */}
-                            <div className="absolute bottom-0 left-0 right-0 p-12">
-                                <div className="max-w-2xl">
-                                    <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
-                                        {featuredEvents[0]?.title || "Discover Amazing Events"}
-                                    </h1>
-                                    <p className="text-xl text-white/90 mb-8">
-                                        {featuredEvents[0]?.artist || "See the best live events near you"}
-                                    </p>
-                                    <Link
-                                        href={featuredEvents[0] ? `/events/${featuredEvents[0].id}` : "/events"}
-                                        className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white font-bold rounded-full shadow-lg shadow-green-500/50 hover:shadow-green-500/70 hover:scale-105 transition-all"
-                                    >
-                                        Get Tickets
-                                        <ChevronRight className="w-5 h-5" />
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Category Tabs */}
-                    <div className="mt-8 flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                        {categories.map((category) => (
-                            <button
-                                key={category.id}
-                                className="flex-shrink-0 px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 rounded-full text-white font-semibold transition-all hover:scale-105"
-                            >
-                                <span className="mr-2">{category.icon}</span>
-                                {category.title}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Music Genres Section */}
-            <section className="py-12 bg-black/20">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-3xl font-black text-white">Browse by Genre</h2>
-                        <button className="flex items-center gap-2 text-[#1DB954] hover:text-[#1ed760] font-semibold transition-colors">
-                            View All
-                            <ChevronRight className="w-5 h-5" />
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        {musicGenres.map((genre) => (
-                            <motion.div
-                                key={genre.id}
-                                whileHover={{ scale: 1.05 }}
-                                className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group"
-                            >
-                                <img
-                                    src={genre.image}
-                                    alt={genre.title}
-                                    className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
-                                <div className="absolute inset-0 bg-[#1DB954]/0 group-hover:bg-[#1DB954]/20 transition-all"></div>
-                                <div className="absolute bottom-0 left-0 right-0 p-6">
-                                    <h3 className="text-2xl font-black text-white">{genre.title}</h3>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Upcoming Events Section */}
-            <section className="py-16">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center gap-3">
-                            <h2 className="text-3xl font-black text-white">Upcoming Events in</h2>
-                            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
-                                <MapPin className="w-4 h-4 text-[#1DB954]" />
-                                <span className="text-white font-semibold">{selectedCity}</span>
-                            </div>
-                        </div>
-                        <button className="flex items-center gap-2 text-[#1DB954] hover:text-[#1ed760] font-semibold transition-colors">
-                            Show +300 More
-                            <ChevronRight className="w-5 h-5" />
-                        </button>
-                    </div>
-
-                    {/* Events Grid */}
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {featuredEvents.slice(0, 6).map((event) => (
-                            <Link
-                                key={event.id}
-                                href={`/events/${event.id}`}
-                                className="group"
-                            >
-                                <motion.div
-                                    whileHover={{ y: -8 }}
-                                    className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden hover:border-[#1DB954]/50 transition-all shadow-xl"
-                                >
-                                    {/* Event Image */}
-                                    <div className="relative aspect-[4/3]">
-                                        {event.imageUrl ? (
-                                            <img
-                                                src={event.imageUrl}
-                                                alt={event.title}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600"></div>
-                                        )}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-
-                                        {/* Price Badge */}
-                                        <div className="absolute top-4 right-4 px-4 py-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold rounded-full shadow-lg">
-                                            {event.price}
-                                        </div>
-
-                                        {/* Date Badge */}
-                                        <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-full">
-                                            <Calendar className="w-4 h-4 text-white" />
-                                            <span className="text-sm text-white font-medium">{event.date}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Event Info */}
-                                    <div className="p-6">
-                                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#1DB954] transition-colors">
-                                            {event.title}
-                                        </h3>
-                                        <div className="flex items-center gap-2 text-slate-400 text-sm mb-3">
-                                            <MapPin className="w-4 h-4" />
-                                            <span>{event.venue}</span>
-                                        </div>
-                                        <p className="text-slate-300 text-sm">{event.artist}</p>
-                                    </div>
-                                </motion.div>
-                            </Link>
-                        ))}
-                    </div>
-
-                    {/* Empty State */}
-                    {featuredEvents.length === 0 && (
-                        <div className="text-center py-16">
-                            <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Calendar className="w-10 h-10 text-slate-400" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-white mb-2">No Events Yet</h3>
-                            <p className="text-slate-400 mb-6">Be the first to create an amazing event!</p>
-                            <Link
-                                href="/auth/organizer/register"
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#1DB954] to-[#1ed760] text-white font-bold rounded-full hover:scale-105 transition-all"
-                            >
-                                Create Event
-                            </Link>
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="bg-black/40 backdrop-blur-xl border-t border-white/10 py-12">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid md:grid-cols-4 gap-8 mb-8">
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-10 h-10 bg-gradient-to-br from-[#1DB954] to-[#1ed760] rounded-xl flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                                    </svg>
-                                </div>
-                                <span className="text-xl font-black text-white">TickEx</span>
-                            </div>
-                            <p className="text-slate-400 text-sm">
-                                Your premier event ticketing platform in Eswatini
-                            </p>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold text-white mb-4">Events</h4>
-                            <ul className="space-y-2 text-sm text-slate-400">
-                                <li><a href="#" className="hover:text-white transition-colors">Browse Events</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Categories</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Trending</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold text-white mb-4">Organizers</h4>
-                            <ul className="space-y-2 text-sm text-slate-400">
-                                <li><Link href="/auth/organizer/login" className="hover:text-white transition-colors">Organizer Login</Link></li>
-                                <li><Link href="/auth/organizer/register" className="hover:text-white transition-colors">Start Selling</Link></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-bold text-white mb-4">Support</h4>
-                            <ul className="space-y-2 text-sm text-slate-400">
-                                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Terms & Privacy</a></li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div className="border-t border-white/10 pt-8 text-center text-sm text-slate-400">
-                        <p>© 2025 TickEx. All rights reserved. Made with ❤️ in Eswatini</p>
-                    </div>
-                </div>
-            </footer>
-        </div>
+  // Hero animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("animate-fade-in");
+          }
+        });
+      },
+      { threshold: 0.1 }
     );
+
+    if (heroRef.current) {
+      observer.observe(heroRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50 font-sans overflow-x-hidden">
+      {/* Navigation */}
+      <nav className="sticky top-0 w-full bg-white/90 backdrop-blur-lg z-50 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="flex items-center space-x-2">
+              <Image
+                src="/logo.svg"
+                alt="Tickex Logo"
+                width={150}
+                height={100}
+              />
+            </Link>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              <Link
+                href="/events"
+                className="text-slate-700 hover:text-primary font-medium transition-colors"
+              >
+                Discover Events
+              </Link>
+              <Link
+                href="/organize"
+                className="text-slate-700 hover:text-primary font-medium transition-colors"
+              >
+                Organize
+              </Link>
+              <Link
+                href="/help"
+                className="text-slate-700 hover:text-primary font-medium transition-colors"
+              >
+                Help Center
+              </Link>
+              <Link
+                href="/auth/customer/login"
+                className="px-6 py-2 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-all hover:shadow-lg"
+              >
+                Sign In
+              </Link>
+            </div>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden p-2 rounded-lg hover:bg-slate-100"
+            >
+              <div
+                className={`w-6 h-0.5 bg-slate-700 transition-all ${
+                  isMenuOpen ? "rotate-45 translate-y-1" : ""
+                }`}
+              />
+              <div
+                className={`w-6 h-0.5 bg-slate-700 my-1 transition-all ${
+                  isMenuOpen ? "opacity-0" : ""
+                }`}
+              />
+              <div
+                className={`w-6 h-0.5 bg-slate-700 transition-all ${
+                  isMenuOpen ? "-rotate-45 -translate-y-1" : ""
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-white border-t border-slate-100"
+            >
+              <div className="px-4 py-6 space-y-4">
+                <Link
+                  href="/events"
+                  className="block text-slate-700 hover:text-primary font-medium py-2"
+                >
+                  Discover Events
+                </Link>
+                <Link
+                  href="/organize"
+                  className="block text-slate-700 hover:text-primary font-medium py-2"
+                >
+                  Organize
+                </Link>
+                <Link
+                  href="/help"
+                  className="block text-slate-700 hover:text-primary font-medium py-2"
+                >
+                  Help Center
+                </Link>
+                <Link href="/auth/customer/login">
+                  <button className="">Sign In</button>
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+
+      {/* Hero Section */}
+      <section ref={heroRef} className="relative overflow-hidden">
+        {/* Background still image */}
+        <div className="absolute inset-0">
+          <Image
+            src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1600"
+            alt="Hero background"
+            fill
+            priority
+            className="object-cover"
+          />
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary to-blue-500/80" />
+        </div>
+
+        {/* Animated shapes */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+
+        {/* Hero Content */}
+        <div className="relative  max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+          <div className="">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h1 className="text-3xl md:text-5xl font-bold mb-6">
+                <span className="bg-white from-primary via-accent to-primary bg-clip-text text-transparent">
+                  Discover Amazing
+                </span>
+                <br />
+                <span className="text-slate-900">Events Around You</span>
+              </h1>
+
+              <p className="text-xl text-white text-slate-600 mb-12 max-w-3xl ">
+                From concerts and sports to conferences and festivals - find and
+                book tickets to the best events in your city. Secure, simple,
+                and seamless.
+              </p>
+            </motion.div>
+
+            {/* Search Bar */}
+            <motion.form
+              onSubmit={handleSearch}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="max-w-4xl   rounded-2xl  "
+            >
+              <div className="flex flex-col bg-white p-2 rounded-2xl md:flex-row gap-2 md:gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center p-4 rounded-xl hover:bg-slate-50 transition-colors">
+                    <Search className="w-5 h-5 text-slate-400 mr-3" />
+                    <input
+                      type="text"
+                      placeholder="Search events, artists, or venues..."
+                      className="w-full bg-transparent text-slate-800 placeholder-slate-400 focus:outline-none"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="px-8 py-4 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-all hover:shadow-lg flex items-center justify-center"
+                >
+                  Search Events
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </button>
+              </div>
+            </motion.form>
+
+            {/* Categories */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="mt-8 flex flex-wrap  gap-3"
+            >
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`px-4 py-2 rounded-full flex items-center space-x-2 transition-all bg-slate-100 `}
+                >
+                  <span className="font-medium">{cat.name}</span>
+                </button>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+      </section>
+      <div className="w-full    ">
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/strip.svg"
+            alt="Tickex"
+            width={1420}
+            height={10}
+            className="w-full  object-cover"
+            priority
+          />
+        </Link>
+      </div>
+      {/* Featured Events */}
+      <section className="py-20 bg-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                Featured <span className="text-primary">Events</span>
+              </h2>
+              <p className="text-slate-600">
+                Hand-picked events you won&apos;t want to miss
+              </p>
+            </div>
+            <Link
+              href="/events"
+              className="hidden md:flex items-center text-primary font-semibold hover:text-primary/80 transition-colors"
+            >
+              View all events
+              <ChevronRight className="w-5 h-5 ml-1" />
+            </Link>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
+            {featuredEvents.slice(0, 6).map((event, index) => (
+              <motion.div
+                key={event.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -8 }}
+              >
+                <Link href={`/events/${event.id}`}>
+                  <div className="group bg-white rounded-2xl overflow-hidden  hover:shadow-2xl transition-all duration-300 cursor-pointer">
+                    <div className="relative h-full aspect-square overflow-hidden">
+                      <Image
+                        src={
+                          event.imageUrl ||
+                          "https://images.unsplash.com/photo-1514525253161-7a46d19cd819"
+                        }
+                        alt={event.title}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="text-xl font-bold text-slate-900 group-hover:text-primary transition-colors mb-2">
+                            {event.title}
+                          </h3>
+                          <p className="text-slate-600 text-sm line-clamp-2">
+                            {event.description ||
+                              "Join us for an unforgettable experience"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="w-4 h-4 text-slate-400" />
+                          <span className="text-sm text-slate-600">
+                            {event.location || "Various Venues"}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Calendar className="w-4 h-4 text-slate-400" />
+                          <span className="text-sm text-slate-600">
+                            {event.date
+                              ? new Date(event.date).toLocaleDateString()
+                              : "TBD"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link
+              href="/events"
+              className="inline-flex items-center px-8 py-3 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-all hover:shadow-lg"
+            >
+              Browse All Events
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+          </div>
+        </div>
+      </section>
+      <div className="w-full h-[400px] max-w-7xl mx-auto ">
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/landing_banner.svg"
+            alt="Tickex"
+            width={1420}
+            height={400}
+            className="w-full h-[400px] object-cover"
+            priority
+          />
+        </Link>
+      </div>
+      {/* Features Section */}
+      <section className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Why Choose <span className="text-primary">Tickex</span>
+            </h2>
+            <p className="text-slate-600 max-w-2xl mx-auto">
+              Experience event ticketing reimagined with cutting-edge technology
+              and customer-centric features
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="bg-white p-6 rounded-2xl  hover:shadow-xl transition-shadow"
+              >
+                <div
+                  className={`w-14 h-14 ${feature.color} rounded-xl flex items-center justify-center mb-6`}
+                >
+                  <span className="text-2xl">{feature.icon}</span>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-slate-600">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-primary to-accent">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+            Ready to Find Your Next Adventure?
+          </h2>
+          <p className="text-white/90 mb-8 text-lg">
+            Join thousands of event-goers who trust Tickex for their ticket
+            needs
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/events"
+              className="px-8 py-3 bg-white text-primary rounded-full font-bold hover:bg-slate-100 transition-all hover:scale-105"
+            >
+              Explore Events
+            </Link>
+            <Link
+              href="/auth/customer/signup"
+              className="px-8 py-3 border-2 border-white text-white rounded-full font-bold hover:bg-white/10 transition-all hover:scale-105"
+            >
+              Sign Up Free
+            </Link>
+          </div>
+        </div>
+      </section>
+      <div className="w-full    ">
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/strip.svg"
+            alt="Tickex"
+            width={1420}
+            height={20}
+            className="w-full  object-cover"
+            priority
+          />
+        </Link>
+      </div>
+      {/* Footer */}
+      <footer className="bg-slate-900 text-white pt-16 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            <div>
+              <div className="flex items-center space-x-2 mb-6">
+                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                  <span className="text-white font-bold text-xl">T</span>
+                </div>
+                <span className="text-2xl font-bold">Tickex</span>
+              </div>
+              <p className="text-slate-400 mb-6">
+                Your gateway to unforgettable experiences. Secure tickets to the
+                best events worldwide.
+              </p>
+              <div className="flex space-x-4">
+                {["Twitter", "Facebook", "Instagram", "LinkedIn"].map(
+                  (social) => (
+                    <div
+                      key={social}
+                      className="w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center hover:bg-primary transition-colors cursor-pointer"
+                    >
+                      <span className="font-semibold">{social.charAt(0)}</span>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-lg mb-6">Discover</h4>
+              <ul className="space-y-3">
+                {[
+                  "Concerts",
+                  "Sports",
+                  "Arts & Theater",
+                  "Food & Drink",
+                  "Conferences",
+                  "Festivals",
+                ].map((item) => (
+                  <li key={item}>
+                    <a
+                      href="#"
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      {item}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-lg mb-6">Organize</h4>
+              <ul className="space-y-3">
+                {[
+                  "Create Events",
+                  "Sell Tickets",
+                  "Marketing Tools",
+                  "Analytics",
+                  "Pricing",
+                  "Resources",
+                ].map((item) => (
+                  <li key={item}>
+                    <a
+                      href="#"
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      {item}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-lg mb-6">Support</h4>
+              <ul className="space-y-3">
+                {[
+                  "Help Center",
+                  "Contact Us",
+                  "FAQ",
+                  "Privacy Policy",
+                  "Terms of Service",
+                  "Refund Policy",
+                ].map((item) => (
+                  <li key={item}>
+                    <a
+                      href="#"
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
+                      {item}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-slate-400 text-sm">
+              © 2024 Tickex. All rights reserved.
+            </p>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+              <a href="#" className="text-slate-400 hover:text-white text-sm">
+                Privacy Policy
+              </a>
+              <a href="#" className="text-slate-400 hover:text-white text-sm">
+                Terms of Service
+              </a>
+              <a href="#" className="text-slate-400 hover:text-white text-sm">
+                Cookie Policy
+              </a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
 }

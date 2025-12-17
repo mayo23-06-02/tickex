@@ -57,16 +57,27 @@ export async function getEventById(id: string) {
     await dbConnect();
 
     try {
-        // Validate ObjectId format
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            console.error(`Invalid ObjectId format: ${id}`);
-            return null;
+        let event;
+
+        // 1. Try ID lookup
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            event = await Event.findById(id).lean();
         }
 
-        const event = await Event.findById(id).lean();
+        // 2. Try Slug lookup
+        if (!event) {
+            event = await Event.findOne({ slug: id }).lean();
+        }
+
+        // 3. Fallback: Try Title lookup (kebab-case approximation)
+        if (!event) {
+            const titleQuery = id.replace(/-/g, ' '); // simplistic de-slugify
+            event = await Event.findOne({
+                title: { $regex: new RegExp(`^${titleQuery}$`, 'i') }
+            }).lean();
+        }
 
         if (!event) {
-            console.error(`Event not found with ID: ${id}`);
             return null;
         }
 
