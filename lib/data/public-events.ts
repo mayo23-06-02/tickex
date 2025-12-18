@@ -90,9 +90,9 @@ export async function getEventById(id: string) {
         let organizerName = "Tickex Organizer";
         try {
             const User = mongoose.model('User');
-            const organizer = await User.findById(event.organizerId).lean();
+            const organizer = await User.findById(event.organizerId).lean() as unknown as { name?: string } | null;
             if (organizer) {
-                organizerName = (organizer as any).name;
+                organizerName = organizer.name || organizerName;
             }
         } catch (err) {
             console.warn("Could not fetch organizer:", err);
@@ -104,8 +104,8 @@ export async function getEventById(id: string) {
             location = { name: event.location, address: event.location };
         } else if (event.location && typeof event.location === 'object') {
             location = {
-                name: (event.location as any).name || (event.location as any).address || 'TBD',
-                address: (event.location as any).address || (event.location as any).name || 'TBD'
+                name: (event.location as { name?: string; address?: string }).name || (event.location as { address?: string }).address || 'TBD',
+                address: (event.location as { address?: string; name?: string }).address || (event.location as { name?: string }).name || 'TBD'
             };
         }
 

@@ -2,13 +2,19 @@ import dbConnect from "@/lib/db/connect";
 import Order from "@/lib/db/models/Order";
 import Event from "@/lib/db/models/Event";
 import TicketType from "@/lib/db/models/TicketType";
+import mongoose from "mongoose";
 
-export async function getDashboardMetrics(userId: string) {
+export async function getDashboardMetrics(userId: string, eventId?: string) {
     await dbConnect();
 
     // 1. Get Events by this organizer
-    const events = await Event.find({ organizerId: userId });
-    const eventIds = events.map(e => e._id);
+    const events = await Event.find({ organizerId: userId }).select('_id');
+    let eventIds = events.map(e => e._id);
+    const activeEventsCount = (eventId && eventId !== 'all') ? 1 : events.length;
+    if (eventId && eventId !== 'all') {
+        const oid = new mongoose.Types.ObjectId(eventId);
+        eventIds = [oid];
+    }
 
     // 2. Aggregate Sales (Total Revenue)
     const salesResult = await Order.aggregate([
@@ -31,7 +37,7 @@ export async function getDashboardMetrics(userId: string) {
         revenue: totalRevenue,
         orders: totalOrders,
         ticketsSold: ticketsSold,
-        activeEvents: events.length
+        activeEvents: activeEventsCount
     };
 }
 

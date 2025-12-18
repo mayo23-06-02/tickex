@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Calendar, ChevronDown, CheckCircle, Loader2 } from "lucide-react";
+import { Plus, Trash2, Calendar, ChevronDown, CheckCircle, Loader2, Upload } from "lucide-react";
 
 interface TicketEditorProps {
     data: any;
@@ -238,6 +238,38 @@ export function TicketEditor({
 
                 {currentTab === "Design" && (
                     <div className="space-y-6">
+                        <div className="space-y-3">
+                            <label className="text-sm font-medium text-[#0f172a]">Ticket Design Image</label>
+                             <div className="border-2 border-dashed border-[#e2e8f0] rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors cursor-pointer group relative">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                            updateData({ designFile: e.target.files[0] });
+                                        }
+                                    }}
+                                />
+                                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                    <Upload className="w-6 h-6 text-[#64748b]" />
+                                </div>
+                                <div className="text-sm font-medium text-[#0f172a] mb-1">
+                                    {data.designFile ? data.designFile.name : "Upload design image"}
+                                </div>
+                                <div className="text-xs text-[#64748b]">150mm x 80mm recommended</div>
+                            </div>
+                             {(data.designUrl || data.designFile) && (
+                                 <div className="relative aspect-[15/8] rounded-lg overflow-hidden border border-[#e2e8f0]">
+                                     <img 
+                                        src={data.designFile ? URL.createObjectURL(data.designFile) : data.designUrl} 
+                                        alt="Current Design" 
+                                        className="w-full h-full object-cover" 
+                                     />
+                                 </div>
+                             )}
+                        </div>
+
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-[#0f172a]">Background Color</label>
                             <div className="flex gap-3">

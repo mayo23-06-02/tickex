@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, Reorder } from "framer-motion";
 import {
     Check,
     Circle,
-    Clock,
     MoreVertical,
     Edit2,
     Trash2,
@@ -36,11 +35,11 @@ interface TimelineItem {
 interface TimelineManagerProps {
     isModalOpen?: boolean;
     setIsModalOpen?: (open: boolean) => void;
+    eventId?: string;
 }
 
-export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen: externalSetModalOpen }: TimelineManagerProps = {}) {
+export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen: externalSetModalOpen, eventId }: TimelineManagerProps = {}) {
     const [items, setItems] = useState<TimelineItem[]>([]);
-    const [editingId, setEditingId] = useState<string | null>(null);
     const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
     const [internalModalOpen, setInternalModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -49,24 +48,35 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
     const isModalOpen = externalModalOpen !== undefined ? externalModalOpen : internalModalOpen;
     const setIsModalOpen = externalSetModalOpen || setInternalModalOpen;
 
-    useEffect(() => {
-        loadItems();
-    }, []);
+    const toDbStatus = (s: "completed" | "active" | "pending") =>
+        s === "completed" ? "completed" : s === "active" ? "in_progress" : "todo";
 
-    async function loadItems() {
+    
+
+    type DbMilestone = {
+        _id: string;
+        title: string;
+        description?: string;
+        startDate?: string | Date;
+        dueDate: string | Date;
+        status: "todo" | "in_progress" | "completed" | "overdue";
+        priority?: "low" | "medium" | "high";
+    };
+
+    const loadItems = useCallback(async () => {
         try {
-            const data = await getMilestones();
-            const formatted = data.map((m: any) => ({
+            const data = await getMilestones(eventId);
+            const formatted = (data as DbMilestone[]).map((m) => ({
                 id: m._id,
                 title: m.title,
-                description: m.description,
-                status: m.status,
-                startDate: m.startDate || m.dueDate, // Fallback
-                endDate: m.dueDate,
-                progress: m.status === 'completed' ? 100 : (m.status === 'active' ? 50 : 0),
-                assignees: [], // Placeholder
-                priority: m.priority || 'medium',
-                dependencies: []
+                description: m.description || "",
+                status: (m.status === "completed" ? "completed" : m.status === "in_progress" ? "active" : "pending") as TimelineItem["status"],
+                startDate: new Date(m.startDate || m.dueDate as Date).toISOString(),
+                endDate: new Date(m.dueDate as Date).toISOString(),
+                progress: m.status === "completed" ? 100 : m.status === "in_progress" ? 50 : 0,
+                assignees: [] as string[],
+                priority: m.priority || "medium",
+                dependencies: [] as string[],
             }));
             setItems(formatted);
         } catch (error) {
@@ -74,9 +84,20 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
         } finally {
             setIsLoading(false);
         }
-    }
+    }, [eventId]);
 
-    const handleAddMilestone = async (milestoneData: any) => {
+    useEffect(() => {
+        void loadItems();
+    }, [loadItems]);
+
+    const handleAddMilestone = async (milestoneData: {
+        title: string;
+        description?: string;
+        startDate?: string | Date;
+        endDate: string | Date;
+        priority: "high" | "medium" | "low";
+        status: "completed" | "active" | "pending";
+    }) => {
         try {
             await createMilestone({
                 title: milestoneData.title,
@@ -84,12 +105,13 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
                 dueDate: milestoneData.endDate,
                 startDate: milestoneData.startDate,
                 priority: milestoneData.priority,
-                status: "pending"
+                status: toDbStatus(milestoneData.status),
+                eventId
             });
             await loadItems();
             setIsModalOpen(false);
             toast.success("Milestone created");
-        } catch (error) {
+        } catch {
             toast.error("Failed to create milestone");
         }
     };
@@ -110,9 +132,9 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
         );
 
         try {
-            await updateMilestone(id, { status: newStatus });
+            await updateMilestone(id, { status: toDbStatus(newStatus) });
             toast.success(`Milestone status updated to ${newStatus}`);
-        } catch (error) {
+        } catch {
             setItems(originalItems); // Revert
             toast.error("Failed to update status");
         }
@@ -142,7 +164,7 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
         try {
             await deleteMilestone(id);
             toast.success("Milestone deleted");
-        } catch (error) {
+        } catch {
             setItems(originalItems);
             toast.error("Failed to delete milestone");
         }
@@ -182,7 +204,7 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
                 {items.length === 0 && (
                     <div className="p-12 text-center text-slate-400">No milestones yet. Create one to get started.</div>
                 )}
-                {items.map((item, index) => (
+                {items.map((item) => (
                     <Reorder.Item
                         key={item.id}
                         value={item}
@@ -247,10 +269,7 @@ export function TimelineManager({ isModalOpen: externalModalOpen, setIsModalOpen
                                                     className="absolute right-0 top-8 z-10 bg-white shadow-lg rounded-lg border border-[#e2e8f0] p-1 min-w-[160px]"
                                                 >
                                                     <button
-                                                        onClick={() => {
-                                                            setEditingId(item.id);
-                                                            setMenuOpenId(null);
-                                                        }}
+                                                        onClick={() => setMenuOpenId(null)}
                                                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#0f172a] hover:bg-slate-50 rounded-md transition-colors"
                                                     >
                                                         <Edit2 className="w-3.5 h-3.5" />

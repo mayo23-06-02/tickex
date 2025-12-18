@@ -1,15 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { TimelineManager } from "@/components/timeline/TimelineManager";
 import { TimelineGantt } from "@/components/timeline/TimelineGantt";
-import { TimelineStats } from "@/components/timeline/TimelineStats";
+import { TimelineStats } from "@/components/timeline/TimelineStatsDynamic";
 import { LayoutList, BarChart3, Calendar, Plus } from "lucide-react";
 
 export default function EventTimelinePage() {
     const [viewMode, setViewMode] = useState<"list" | "gantt">("list");
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const search = useSearchParams();
+    const eventIdParam = search.get("eventId") || undefined;
 
     return (
         <DashboardLayout>
@@ -55,16 +58,17 @@ export default function EventTimelinePage() {
                 </div>
 
                 {/* Stats Overview */}
-                <TimelineStats />
+                <TimelineStats eventId={eventIdParam} />
 
                 {/* Timeline Content */}
                 {viewMode === "list" ? (
                     <TimelineManager
                         isModalOpen={isModalOpen}
                         setIsModalOpen={setIsModalOpen}
+                        eventId={eventIdParam}
                     />
                 ) : (
-                    <TimelineGantt />
+                    <TimelineGantt eventId={eventIdParam} />
                 )}
             </div>
         </DashboardLayout>

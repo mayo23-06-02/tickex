@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { WebsiteComponent } from "./types";
 
 interface ComponentRendererProps {
@@ -24,6 +25,8 @@ export function ComponentRenderer({ component, globalStyles }: ComponentRenderer
     const headingStyle = {
         fontFamily: headingFont,
     };
+
+    const lineupRef = useRef<HTMLDivElement | null>(null);
 
     switch (component.type) {
         case "hero":
@@ -81,28 +84,59 @@ export function ComponentRenderer({ component, globalStyles }: ComponentRenderer
                 <div className="py-16 px-8 bg-card">
                     <div className="max-w-6xl mx-auto">
                         <h2
-                            className="text-4xl font-bold text-center mb-12"
+                            className="text-4xl font-bold text-center mb-6"
                             style={{ color: globalStyles.secondaryColor, ...commonStyle }}
                         >
                             {component.props.title || "Lineup"}
                         </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {[1, 2, 3].map((i) => (
-                                <div
-                                    key={i}
-                                    className="p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow"
-                                    style={{ borderTop: `4px solid ${globalStyles.primaryColor}` }}
+                        <div className="relative">
+                            <div
+                                ref={lineupRef}
+                                className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4"
+                            >
+                                {(component.props.artists && component.props.artists.length > 0
+                                    ? component.props.artists
+                                    : [
+                                        "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600",
+                                        "https://images.unsplash.com/photo-1485579149621-3123dd979885?w=600",
+                                        "https://images.unsplash.com/photo-1507878866276-a9473f0b3345?w=600",
+                                    ]
+                                ).map((item: any, idx: number) => {
+                                    const imageUrl = typeof item === "string" ? item : item?.image || "";
+                                    const name = typeof item === "string" ? `Artist ${idx + 1}` : item?.name || `Artist ${idx + 1}`;
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className="min-w-[240px] snap-start p-6 rounded-xl shadow-lg bg-white"
+                                            style={{ borderTop: `4px solid ${globalStyles.primaryColor}` }}
+                                        >
+                                            <div className="w-full h-40 rounded-lg overflow-hidden mb-4 bg-slate-100">
+                                                {imageUrl ? (
+                                                    <img src={imageUrl} alt={name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+                                                )}
+                                            </div>
+                                            <h3 className="text-xl font-bold mb-2">{name}</h3>
+                                            <p className="text-gray-600">Performance time TBA</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="flex justify-between mt-2">
+                                <button
+                                    onClick={() => lineupRef.current?.scrollBy({ left: -300, behavior: "smooth" })}
+                                    className="px-3 py-2 rounded-lg border border-[#e2e8f0] bg-white text-sm"
                                 >
-                                    <div
-                                        className="w-12 h-12 rounded-full mb-4 flex items-center justify-center text-white font-bold"
-                                        style={{ backgroundColor: globalStyles.primaryColor }}
-                                    >
-                                        {i}
-                                    </div>
-                                    <h3 className="text-xl font-bold mb-2">Artist {i}</h3>
-                                    <p className="text-gray-600">Performance time TBA</p>
-                                </div>
-                            ))}
+                                    Prev
+                                </button>
+                                <button
+                                    onClick={() => lineupRef.current?.scrollBy({ left: 300, behavior: "smooth" })}
+                                    className="px-3 py-2 rounded-lg border border-[#e2e8f0] bg-white text-sm"
+                                >
+                                    Next
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -164,21 +198,27 @@ export function ComponentRenderer({ component, globalStyles }: ComponentRenderer
                 <div className="py-16 px-8 bg-card">
                     <div className="max-w-6xl mx-auto">
                         <h2
-                            className="text-4xl font-bold text-center mb-12"
+                            className="text-4xl font-bold text-center mb-6"
                             style={{ color: globalStyles.secondaryColor, ...commonStyle }}
                         >
                             {component.props.title || "Gallery"}
                         </h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[1, 2, 3, 4].map((i) => (
-                                <div
-                                    key={i}
-                                    className="aspect-square rounded-lg overflow-hidden"
-                                    style={{ backgroundColor: `${globalStyles.primaryColor}20` }}
-                                >
-                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                        Image {i}
-                                    </div>
+                            {(component.props.images && component.props.images.length > 0
+                                ? component.props.images
+                                : [
+                                    "https://images.unsplash.com/photo-1546500840-ae38253aba9b?w=600",
+                                    "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600",
+                                    "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=600",
+                                    "https://images.unsplash.com/photo-1509099836639-7f3cda0ea89b?w=600",
+                                ]
+                            ).map((url: string, idx: number) => (
+                                <div key={idx} className="aspect-square rounded-lg overflow-hidden bg-slate-100">
+                                    {url ? (
+                                        <img src={url} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+                                    )}
                                 </div>
                             ))}
                         </div>

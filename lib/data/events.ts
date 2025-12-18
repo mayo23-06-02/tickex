@@ -96,7 +96,7 @@ export async function getEventForEditing(eventId: string, userId: string) {
         endDate: new Date(event.endDate),
         location: typeof event.location === 'string' ? event.location : (event.location?.name || ""),
         description: event.description || "",
-        tickets: ticketTypes.map((t: any, index: number) => ({
+        tickets: ticketTypes.map((t: { _id: { toString(): string }; name: string; price: number; quantityTotal: number; description?: string }, index: number) => ({
             id: index + 1, // Wizard uses number IDs. We need to track real ID separately maybe?
             realId: t._id.toString(), // Add realId to track existing tickets
             name: t.name,

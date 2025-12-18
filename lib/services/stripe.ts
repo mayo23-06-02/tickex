@@ -4,7 +4,6 @@ if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error('STRIPE_SECRET_KEY is missing');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-01-27.acacia' as any,
+    apiVersion: '2025-01-27.acacia' as Stripe.StripeConfig['apiVersion'],
 });

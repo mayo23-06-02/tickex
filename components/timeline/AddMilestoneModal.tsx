@@ -8,7 +8,7 @@ import { toast } from "sonner";
 interface AddMilestoneModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onAdd: (milestone: any) => void;
+    onAdd: (milestone: any) => Promise<void> | void;
 }
 
 export function AddMilestoneModal({ isOpen, onClose, onAdd }: AddMilestoneModalProps) {
@@ -25,6 +25,7 @@ export function AddMilestoneModal({ isOpen, onClose, onAdd }: AddMilestoneModalP
 
     const [assigneeInput, setAssigneeInput] = useState("");
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [submitting, setSubmitting] = useState(false);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
@@ -49,30 +50,34 @@ export function AddMilestoneModal({ isOpen, onClose, onAdd }: AddMilestoneModalP
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!validateForm()) {
             toast.error("Please fix the errors in the form");
             return;
         }
-
-        const newMilestone = {
-            id: Date.now().toString(),
-            title: formData.title,
-            description: formData.description,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            progress: 0,
-            assignees: formData.assignees,
-            priority: formData.priority,
-            status: formData.status,
-            dependencies: formData.dependencies,
-        };
-
-        onAdd(newMilestone);
-        toast.success("Milestone added successfully!");
-        handleClose();
+        setSubmitting(true);
+        try {
+            const newMilestone = {
+                id: Date.now().toString(),
+                title: formData.title,
+                description: formData.description,
+                startDate: formData.startDate,
+                endDate: formData.endDate,
+                progress: 0,
+                assignees: formData.assignees,
+                priority: formData.priority,
+                status: formData.status,
+                dependencies: formData.dependencies,
+            };
+            await onAdd(newMilestone);
+            toast.success("Milestone added successfully!");
+            handleClose();
+        } catch {
+            toast.error("Failed to add milestone");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleClose = () => {
@@ -326,12 +331,14 @@ export function AddMilestoneModal({ isOpen, onClose, onAdd }: AddMilestoneModalP
                                     type="button"
                                     onClick={handleClose}
                                     className="px-6 py-2.5 bg-white border border-[#e2e8f0] text-[#0f172a] rounded-lg font-medium hover:bg-slate-50 transition-colors"
+                                    disabled={submitting}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSubmit}
-                                    className="px-6 py-2.5 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-medium transition-all shadow-sm shadow-green-200 hover:shadow-md hover:shadow-green-300"
+                                    className="px-6 py-2.5 bg-[#1DB954] hover:bg-[#1ed760] text-white rounded-lg font-medium transition-all shadow-sm shadow-green-200 hover:shadow-md hover:shadow-green-300 disabled:opacity-60"
+                                    disabled={submitting}
                                 >
                                     Add Milestone
                                 </button>

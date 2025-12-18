@@ -11,10 +11,14 @@ interface MetricGridProps {
         orders: number;
         ticketsSold: number;
         activeEvents: number;
-    }
+    };
+    breakdown?: Array<{ name: string; sold: number }>;
+    salesSeries?: number[];
+    lastSaleMinutes?: number | null;
+    velocityPerHour?: number | null;
 }
 
-export function MetricGrid({ data }: MetricGridProps) {
+export function MetricGrid({ data, breakdown = [], salesSeries = [], lastSaleMinutes = null, velocityPerHour = null }: MetricGridProps) {
     const revenue = data ? `SZL ${data.revenue.toLocaleString()}` : "SZL 0";
     const tickets = data ? `${data.ticketsSold}` : "0";
 
@@ -29,10 +33,10 @@ export function MetricGrid({ data }: MetricGridProps) {
                         <DollarSign className="w-5 h-5 text-white" />
                     </div>
                 }
-                trend={{ value: '+0%', isPositive: true }} // TODO: Calculate trend
+                trend={{ value: '+0%', isPositive: true }}
                 subtitle="All time revenue"
             >
-                <TotalSalesMetric />
+                <TotalSalesMetric series={salesSeries} />
             </MetricCard>
 
             <MetricCard
@@ -46,7 +50,7 @@ export function MetricGrid({ data }: MetricGridProps) {
                     </div>
                 }
             >
-                <TicketsSoldMetric />
+                <TicketsSoldMetric breakdown={breakdown} />
             </MetricCard>
 
             <MetricCard
@@ -67,7 +71,7 @@ export function MetricGrid({ data }: MetricGridProps) {
                 value="Live"
                 isLive={true}
             >
-                <RealTimeSalesMetric />
+                <RealTimeSalesMetric lastSaleMinutes={lastSaleMinutes} velocityPerHour={velocityPerHour} />
             </MetricCard>
         </div>
     );

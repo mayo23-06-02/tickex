@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import type { ReactElement } from 'react';
 import { TicketEmail } from '@/components/emails/TicketEmail';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -16,7 +17,7 @@ export async function sendTicketEmail(to: string, customerName: string, eventNam
             from: 'TickEx <tickets@tickex.com>', // Requires verified domain
             to: [to],
             subject: `Your Tickets for ${eventName}`,
-            react: TicketEmail({ customerName, eventName, ticketLink }) as any,
+            react: TicketEmail({ customerName, eventName, ticketLink }) as ReactElement,
         });
         return data;
     } catch (error) {

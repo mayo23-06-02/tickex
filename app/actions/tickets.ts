@@ -6,13 +6,16 @@ import TicketType from "@/lib/db/models/TicketType";
 import Event from "@/lib/db/models/Event";
 import { revalidatePath } from "next/cache";
 
-export async function upsertTicketType(data: any) {
+import { uploadImage } from "@/lib/services/cloudinary";
+
+export async function upsertTicketType(formData: FormData) {
     const session = await auth();
     if (!session?.user || session.user.role !== "organizer") {
         return { error: "Unauthorized" };
     }
 
-    if (!data.eventId) {
+    const eventId = formData.get("eventId") as string;
+    if (!eventId) {
         return { error: "Event ID is required" };
     }
 
@@ -21,7 +24,7 @@ export async function upsertTicketType(data: any) {
 
         // Verify organizer owns the event
         const event = await Event.findOne({
-            _id: data.eventId,
+            _id: eventId,
             organizerId: session.user.id
         });
 
@@ -29,27 +32,49 @@ export async function upsertTicketType(data: any) {
             return { error: "Event not found or unauthorized" };
         }
 
-        const ticketData = {
-            event: data.eventId,
-            name: data.ticketType, // Mapping client 'ticketType' to model 'name'
-            price: data.price,
-            quantityTotal: data.quantity,
-            description: data.description,
-            saleStart: data.saleStart,
-            saleEnd: data.saleEnd,
+        // Handle Image Upload
+        let ticketDesignUrl = formData.get("ticketDesignUrl") as string;
+        const designFile = formData.get("designFile") as File;
+        
+        if (designFile && designFile.size > 0) {
+            ticketDesignUrl = await uploadImage(designFile);
+        }
 
-            // Advanced Config
-            perks: data.perks,
-            accessRules: data.accessRules,
-            designConfig: data.designConfig,
-            transferSettings: data.transferSettings,
+        const ticketData: any = {
+            event: eventId,
+            name: formData.get("ticketType") as string,
+            price: Number(formData.get("price")),
+            quantityTotal: Number(formData.get("quantity")),
+            description: formData.get("description") as string,
+            ticketDesignUrl,
         };
 
+        // Handle optional dates
+        const saleStart = formData.get("saleStart") as string;
+        if (saleStart) ticketData.saleStart = saleStart;
+        
+        const saleEnd = formData.get("saleEnd") as string;
+        if (saleEnd) ticketData.saleEnd = saleEnd;
+
+        // Parse JSON fields
+        const perksJson = formData.get("perks") as string;
+        if (perksJson) ticketData.perks = JSON.parse(perksJson);
+
+        const accessRulesJson = formData.get("accessRules") as string;
+        if (accessRulesJson) ticketData.accessRules = JSON.parse(accessRulesJson);
+
+        const designConfigJson = formData.get("designConfig") as string;
+        if (designConfigJson) ticketData.designConfig = JSON.parse(designConfigJson);
+
+        const transferSettingsJson = formData.get("transferSettings") as string;
+        if (transferSettingsJson) ticketData.transferSettings = JSON.parse(transferSettingsJson);
+
+        const id = formData.get("id") as string;
         let result;
-        if (data.id && data.id !== 'new') {
+        if (id && id !== 'new') {
             // Update existing
             result = await TicketType.findByIdAndUpdate(
-                data.id,
+                id,
                 { $set: ticketData },
                 { new: true }
             );

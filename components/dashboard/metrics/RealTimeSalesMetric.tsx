@@ -1,17 +1,26 @@
 import { MapPin } from "lucide-react";
 
-export function RealTimeSalesMetric() {
+export function RealTimeSalesMetric({
+    lastSaleMinutes = null,
+    velocityPerHour = null
+}: {
+    lastSaleMinutes?: number | null;
+    velocityPerHour?: number | null;
+}) {
     return (
         <div className="space-y-3 mt-1">
             <div className="space-y-1">
                 <div className="text-xs text-[#64748b]">
-                    Last sale: <span className="font-medium text-[#0f172a]">2 min ago</span>
+                    Last sale:{" "}
+                    <span className="font-medium text-[#0f172a]">
+                        {lastSaleMinutes === null ? "—" : `${lastSaleMinutes} min ago`}
+                    </span>
                 </div>
                 <div className="text-xs text-[#64748b]">
-                    Velocity: <span className="font-medium text-[#1DB954]">12 tickets/hour</span>
-                </div>
-                <div className="text-xs text-[#64748b]">
-                    Top location: <span className="font-medium text-[#0f172a]">Mbabane</span>
+                    Velocity:{" "}
+                    <span className="font-medium text-[#1DB954]">
+                        {velocityPerHour === null ? "—" : `${velocityPerHour} tickets/hour`}
+                    </span>
                 </div>
             </div>
 

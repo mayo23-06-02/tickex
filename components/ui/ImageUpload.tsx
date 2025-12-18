@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { uploadFile } from "@/app/actions/upload";
 import { toast } from "sonner";
@@ -68,11 +69,7 @@ export function ImageUpload({ value, onChange, label, className = "" }: ImageUpl
                 {/* Preview */}
                 {value ? (
                     <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200 group flex-shrink-0">
-                        <img
-                            src={value}
-                            alt="Uploaded"
-                            className="w-full h-full object-cover"
-                        />
+                        <Image src={value} alt="Uploaded" fill className="object-cover" />
                         <button
                             onClick={() => onChange("")}
                             className="absolute top-1 right-1 p-1 bg-white/90 rounded-full text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"

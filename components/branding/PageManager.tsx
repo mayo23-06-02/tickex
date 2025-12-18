@@ -2,6 +2,7 @@
 
 import { Plus, Edit, Trash2 } from "lucide-react";
 import type { Page } from "@/app/branding/page";
+import { useMemo } from "react";
 
 interface PageManagerProps {
     pages: Page[];
@@ -20,6 +21,8 @@ export function PageManager({
     onUpdatePage,
     onDeletePage
 }: PageManagerProps) {
+    const currentPage = useMemo(() => pages.find(p => p.id === currentPageId), [pages, currentPageId]);
+
     return (
         <div className="bg-white rounded-xl p-4 border border-[#e2e8f0]">
             <div className="flex justify-between items-center mb-4">
@@ -59,6 +62,41 @@ export function PageManager({
                     </div>
                 ))}
             </div>
+            {currentPage && (
+                <div className="mt-4 p-3 border border-[#e2e8f0] rounded-lg bg-slate-50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wider mb-1 block">
+                                Name
+                            </label>
+                            <input
+                                type="text"
+                                value={currentPage.name}
+                                onChange={(e) => onUpdatePage(currentPage.id, { name: e.target.value })}
+                                className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wider mb-1 block">
+                                Slug
+                            </label>
+                            <input
+                                type="text"
+                                value={currentPage.slug}
+                                onChange={(e) => {
+                                    const raw = e.target.value.trim();
+                                    const normalized = (raw.startsWith("/") ? raw : `/${raw}`)
+                                        .replace(/\s+/g, "-")
+                                        .toLowerCase();
+                                    onUpdatePage(currentPage.id, { slug: normalized });
+                                }}
+                                className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-sm font-mono"
+                            />
+                            <p className="text-xs text-[#64748b] mt-1">Use leading `/`, e.g. `/home`, `/about`</p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

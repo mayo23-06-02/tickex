@@ -4,10 +4,23 @@ import TicketType from "@/lib/db/models/TicketType";
 
 export const dynamic = 'force-dynamic';
 
+type DiagTicket = {
+    name: string;
+    price: number;
+    remaining: number;
+};
+
+type DiagEvent = {
+    id: string;
+    title: string;
+    status: string;
+    ticketCount: number;
+    tickets: DiagTicket[];
+};
+
 export default async function DiagnosticsPage() {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let eventsWithTickets: any[] = [];
-    let error = null;
+    let eventsWithTickets: DiagEvent[] = [];
+    let error: string | null = null;
 
     try {
         await dbConnect();
@@ -32,9 +45,9 @@ export default async function DiagnosticsPage() {
                 };
             })
         );
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("Diagnostics DB Error:", e);
-        error = e.message || "Failed to connect to database";
+        error = e instanceof Error ? e.message : "Failed to connect to database";
     }
 
     if (error) {

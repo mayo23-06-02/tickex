@@ -51,7 +51,7 @@ export const Button = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, Bu
 
         return (
             <button
-                // @ts-ignore
+                // @ts-expect-error forwardRef accepts HTMLButtonElement | HTMLAnchorElement
                 ref={ref}
                 className={combinedClassName}
                 disabled={isLoading || props.disabled}

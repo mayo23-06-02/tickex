@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Calendar, ZoomIn, ZoomOut } from "lucide-react";
+import { getMilestones } from "@/app/actions/timeline";
 
 interface GanttTask {
     id: string;
@@ -14,59 +15,38 @@ interface GanttTask {
     dependencies?: string[];
 }
 
-const tasks: GanttTask[] = [
-    {
-        id: "1",
-        title: "Planning & Strategy",
-        startDate: new Date("2024-11-01"),
-        endDate: new Date("2024-12-15"),
-        progress: 100,
-        status: "completed",
-    },
-    {
-        id: "2",
-        title: "Marketing Launch",
-        startDate: new Date("2024-12-10"),
-        endDate: new Date("2025-01-10"),
-        progress: 100,
-        status: "completed",
-        dependencies: ["1"],
-    },
-    {
-        id: "3",
-        title: "Ticket Sales",
-        startDate: new Date("2025-01-15"),
-        endDate: new Date("2025-03-15"),
-        progress: 65,
-        status: "active",
-        dependencies: ["2"],
-    },
-    {
-        id: "4",
-        title: "Venue Setup",
-        startDate: new Date("2025-03-01"),
-        endDate: new Date("2025-03-14"),
-        progress: 0,
-        status: "pending",
-        dependencies: ["3"],
-    },
-    {
-        id: "5",
-        title: "Event Day",
-        startDate: new Date("2025-03-15"),
-        endDate: new Date("2025-03-15"),
-        progress: 0,
-        status: "pending",
-        dependencies: ["4"],
-    },
-];
-
-export function TimelineGantt() {
+export function TimelineGantt({ eventId }: { eventId?: string }) {
     const [zoom, setZoom] = useState(1);
     const [currentDate] = useState(new Date());
+    const [tasks, setTasks] = useState<GanttTask[]>([]);
+
+    useEffect(() => {
+        load();
+    }, []);
+
+    async function load() {
+        try {
+            const data = await getMilestones(eventId);
+            const formatted = data.map((m: any) => ({
+                id: m._id,
+                title: m.title,
+                startDate: m.startDate ? new Date(m.startDate) : m.dueDate ? new Date(m.dueDate) : new Date(),
+                endDate: m.dueDate ? new Date(m.dueDate) : m.startDate ? new Date(m.startDate) : new Date(),
+                progress: m.status === "completed" ? 100 : m.status === "active" || m.status === "in_progress" ? 50 : 0,
+                status: m.status === "in_progress" ? "active" : m.status,
+                dependencies: []
+            }));
+            setTasks(formatted);
+        } catch (e) {
+            setTasks([]);
+        }
+    }
 
     // Calculate date range
-    const allDates = tasks.flatMap((task) => [task.startDate, task.endDate]);
+    const datePairs: Array<{ startDate: Date; endDate: Date }> = tasks.length
+        ? tasks
+        : [{ startDate: currentDate, endDate: currentDate }];
+    const allDates: Date[] = datePairs.flatMap((t) => [t.startDate, t.endDate]);
     const minDate = new Date(Math.min(...allDates.map((d) => d.getTime())));
     const maxDate = new Date(Math.max(...allDates.map((d) => d.getTime())));
 

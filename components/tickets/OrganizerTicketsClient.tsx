@@ -21,6 +21,7 @@ interface EventData {
 }
 
 interface TicketData {
+    designFile?: File | null;
     id: string;
     eventId: string;
     eventTitle: string;
@@ -110,6 +111,7 @@ export default function OrganizerTicketsClient({ tickets = [], events = [] }: Or
                 description: '',
                 status: 'active',
                 qrCode: 'PREVIEW',
+                designFile: null,
                 perks: [],
                 accessRules: {
                     gates: 'All Gates',
@@ -183,7 +185,24 @@ export default function OrganizerTicketsClient({ tickets = [], events = [] }: Or
 
         setIsSaving(true);
         try {
-            const result = await upsertTicketType(formData);
+            const data = new FormData();
+            data.append("id", formData.id);
+            data.append("eventId", formData.eventId);
+            data.append("ticketType", formData.ticketType);
+            data.append("quantity", formData.quantity.toString());
+            data.append("price", formData.price.toString());
+            data.append("description", formData.description || "");
+            
+            if (formData.designUrl) data.append("ticketDesignUrl", formData.designUrl);
+            if (formData.designFile) data.append("designFile", formData.designFile);
+
+            // Append JSON fields
+            data.append("perks", JSON.stringify(formData.perks));
+            data.append("accessRules", JSON.stringify(formData.accessRules));
+            data.append("designConfig", JSON.stringify(formData.designConfig));
+            data.append("transferSettings", JSON.stringify(formData.transferSettings));
+
+            const result = await upsertTicketType(data);
 
             if (result.error) {
                 toast.error(result.error);

@@ -2,6 +2,7 @@
 
 import type { WebsiteComponent } from "./types";
 import { ImageUpload } from "@/components/ui/ImageUpload";
+import { Trash2 } from "lucide-react";
 
 interface DesignPanelProps {
     selectedComponent: WebsiteComponent | undefined;
@@ -142,21 +143,52 @@ export function DesignPanel({
                                             className="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-sm"
                                         />
                                     ) : Array.isArray(value) ? (
-                                        <div className="space-y-2">
-                                            {value.map((item: any, i: number) => (
-                                                <div key={i} className="flex gap-2">
-                                                    <input
-                                                        type="text"
-                                                        value={typeof item === 'string' ? item : JSON.stringify(item)}
-                                                        className="flex-1 px-3 py-2 rounded-lg border border-[#e2e8f0] text-sm bg-slate-50"
-                                                        readOnly
+                                        <>
+                                            {key === "images" || key === "artists" ? (
+                                                <div className="space-y-3">
+                                                    <div className="grid grid-cols-3 gap-3">
+                                                        {(value as string[]).map((url: string, i: number) => (
+                                                            <div key={i} className="relative">
+                                                                <img src={url} alt="" className="w-full h-20 object-cover rounded-lg border border-[#e2e8f0]" />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const next = (value as string[]).filter((_, idx) => idx !== i);
+                                                                        onUpdateComponent(selectedComponent.id, { [key]: next });
+                                                                    }}
+                                                                    className="absolute top-1 right-1 p-1 bg-white/90 rounded text-red-500"
+                                                                >
+                                                                    <Trash2 className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <ImageUpload
+                                                        value=""
+                                                        onChange={(url) => {
+                                                            const next = [...(value as string[]), url];
+                                                            onUpdateComponent(selectedComponent.id, { [key]: next });
+                                                        }}
                                                     />
                                                 </div>
-                                            ))}
-                                            <p className="text-xs text-[#64748b]">
-                                                (List editing coming soon - switch to manual mode if needed)
-                                            </p>
-                                        </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    {value.map((item: any, i: number) => (
+                                                        <div key={i} className="flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={typeof item === 'string' ? item : JSON.stringify(item)}
+                                                                className="flex-1 px-3 py-2 rounded-lg border border-[#e2e8f0] text-sm bg-slate-50"
+                                                                readOnly
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                    <p className="text-xs text-[#64748b]">
+                                                        List editing not supported for this field
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </>
                                     ) : (
                                         <div className="text-xs text-[#64748b] bg-slate-50 p-2 rounded">
                                             Unsupported type: {typeof value}
