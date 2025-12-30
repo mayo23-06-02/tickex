@@ -45,7 +45,7 @@ const TicketTypeSchema = new Schema(
         },
         limitPerUser: {
             type: Number,
-            default: 5,
+            default: 10000,
         },
         // Advanced Configuration
         perks: [{ type: String }],

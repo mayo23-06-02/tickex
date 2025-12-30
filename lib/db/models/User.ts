@@ -20,7 +20,7 @@ const UserSchema = new Schema(
         },
         role: {
             type: String,
-            enum: ["customer", "organizer", "admin"],
+            enum: ["customer", "admin"],
             default: "customer",
         },
         image: {
@@ -29,6 +29,14 @@ const UserSchema = new Schema(
         stripeAccountId: {
             type: String,
             default: null
+        },
+        otp: {
+            code: String,
+            expiresAt: Date
+        },
+        isVerified: {
+            type: Boolean,
+            default: false
         }
     },
     { timestamps: true }

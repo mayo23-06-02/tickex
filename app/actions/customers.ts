@@ -23,6 +23,7 @@ export async function getCustomers() {
     })
         .populate('userId', 'name email image')
         .populate('eventId', 'title')
+        .populate('items.ticketTypeId', 'name')
         .sort({ createdAt: -1 });
 
     // 3. Group by User
@@ -47,11 +48,16 @@ export async function getCustomers() {
 
         // Add order to history
         cust.orders.push({
-            id: order._id.toString(), // Display ID can be simplified
+            id: order._id.toString(), 
             event: order.eventId?.title || "Unknown Event",
             date: order.createdAt,
             amount: order.totalAmount,
-            tickets: order.items.reduce((acc: number, item: any) => acc + item.quantity, 0)
+            tickets: order.items.reduce((acc: number, item: any) => acc + item.quantity, 0),
+            items: order.items.map((item: any) => ({
+                type: item.ticketTypeId?.name || "Standard Ticket",
+                quantity: item.quantity,
+                price: item.priceAtPurchase
+            }))
         });
 
         // Update stats

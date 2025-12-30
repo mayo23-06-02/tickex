@@ -126,6 +126,7 @@ export async function getEventById(id: string) {
                 description: t.description || '',
                 quantity: t.quantityTotal,
                 remaining: t.quantityTotal - t.quantitySold,
+                limitPerUser: (t as any).limitPerUser || 50,
                 designUrl: t.ticketDesignUrl || null
             }))
         };
